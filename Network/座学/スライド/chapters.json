@@ -1,0 +1,781 @@
+[
+  {
+    "id": "00",
+    "folder": "00-NW座学のゴール",
+    "label": "第0章",
+    "title": "NW座学のゴール",
+    "subtitle": "構成を読み、設定し、証拠で検証・切り分ける",
+    "footer": "第0章  NW座学のゴール",
+    "meta": "Azureネットワーク設計・トラブルシューティング ワークショップ",
+    "chips": ["学習目標", "確認基準", "AI活用"],
+    "goal": "座学全体の到達目標、確認方法、AI活用時の検証原則を説明する。",
+    "slides": [
+      {
+        "kicker": "到達目標",
+        "title": "座学全体で身につける4つの実務能力",
+        "lead": "用語の暗記ではなく、構成を読み、変更の影響を予測し、結果を説明できる状態を目指します。",
+        "layout": "flow",
+        "steps": [
+          {"title": "理解する", "body": "構成と通信経路を\n根拠とともに説明する"},
+          {"title": "設計する", "body": "通信要件から\n必要な経路を決める"},
+          {"title": "検証する", "body": "有効なルートと\n疎通結果を確認する"},
+          {"title": "切り分ける", "body": "観測した事実から\n原因を絞り込む"}
+        ],
+        "callout": "完了の根拠は、設定画面の操作だけでなく観測結果にも残す。",
+        "notes": "本章は座学全体の到達目標を示します。受講者が構成・設計・設定・検証・障害切り分けを順に説明できることが必達です。"
+      },
+      {
+        "kicker": "学習の順序",
+        "title": "5章で仕組み・設計・診断・失敗例を学ぶ",
+        "lead": "各章は独立して復習でき、前半の仕組みを後半の診断と失敗予防に結び付けます。",
+        "layout": "columns",
+        "groups": [
+          {
+            "title": "仕組みと設計",
+            "items": [
+              "第0章で到達目標と確認方法を共有する。",
+              "第1章でAzureのルート選択と次ホップを学ぶ。",
+              "第2章でHub-Spokeと往復経路を設計する。"
+            ]
+          },
+          {
+            "title": "診断と振り返り",
+            "items": [
+              "第3章で観測ツールを使い分けて切り分ける。",
+              "第4章で典型的な設定・経路の失敗を確認する。",
+              "ハンズオンで変更前後の証拠を比較する。"
+            ]
+          }
+        ],
+        "notes": "章の順序は講義アジェンダと一致させています。第3章は診断デモ、第4章は障害解析チャレンジの解説・復習にも使います。"
+      },
+      {
+        "kicker": "完了条件",
+        "title": "変更は設計値・設定値・確認結果で説明する",
+        "lead": "「Portalで設定できた」だけで完了にせず、意図と実際の適用結果を対応付けます。",
+        "layout": "flow",
+        "steps": [
+          {"title": "設計値", "body": "送信元・宛先\nプレフィックス\n期待する次ホップ"},
+          {"title": "設定値", "body": "UDR・関連付け\nピアリング\n転送・許可設定"},
+          {"title": "確認結果", "body": "有効なルート\nNext hop\n疎通・ログ"}
+        ],
+        "callout": "設定値と確認結果が異なる場合は、その差を次の調査対象にする。",
+        "notes": "設計値・設定値・確認結果の3点を記録することで、変更の意図とAzureで観測した結果を比較できます。"
+      },
+      {
+        "kicker": "ストレッチ目標",
+        "title": "AIは仮説整理に使い、構成と証拠で検証する",
+        "lead": "AIの回答を設定変更の根拠にせず、Azureの観測情報と公式仕様で最終判断します。[1][2]",
+        "layout": "columns",
+        "groups": [
+          {
+            "title": "AIに渡す情報",
+            "items": [
+              "発生時刻、送信元、宛先、ポート、期待経路を整理する。",
+              "事実と未確認事項を分け、仮説と確認順を求める。",
+              "組織の規則を確認し、機密・資格情報を入力しない。"
+            ]
+          },
+          {
+            "title": "人が検証する情報",
+            "items": [
+              "有効なルート、Next hop、ログ、診断結果を照合する。[2]",
+              "AIの推測とAzureで観測した事実を分けて記録する。",
+              "変更前に影響範囲と切り戻し方法を決める。"
+            ]
+          }
+        ],
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/copilot/copilot-networking"},
+          {"url": "https://learn.microsoft.com/ja-jp/azure/network-watcher/connection-troubleshoot-overview"}
+        ],
+        "notes": "Microsoft Copilot in Azureのネットワーク利用例と、確認に使用するNetwork Watcherの接続診断を参照します。利用できるデータ・権限・機能の範囲は環境に依存します。"
+      }
+    ],
+    "quiz": [
+      "次ホップが設計どおりでもTCP接続が失敗するとき、別に確認する項目を挙げてください。",
+      "設定変更を完了と判断するために、設計値・設定値に加えて何を記録しますか。",
+      "AIが提示した原因候補を、どの情報で検証しますか。"
+    ]
+  },
+  {
+    "id": "01",
+    "folder": "01-Azureルーティングの基礎",
+    "label": "第1章",
+    "title": "Azureルーティングの基礎",
+    "subtitle": "送信元サブネットと宛先IPから次ホップを読み取る",
+    "footer": "第1章  Azureルーティングの基礎",
+    "meta": "対象：Azure Virtual Network上のIPv4通信",
+    "chips": ["ルートの由来", "優先順位", "Next hop"],
+    "goal": "Azureのルートの由来、適用条件、選択順序と次ホップを説明する。",
+    "slides": [
+      {
+        "kicker": "ルーティングの基本",
+        "title": "Azureの経路は送信元サブネットと宛先IPで決まる",
+        "lead": "送信元VM側に適用されたルートを使い、宛先IPに対する次ホップを選びます。[1]",
+        "layout": "flow",
+        "steps": [
+          {"title": "送信元VM", "body": "10.1.1.4\nSpoke 1"},
+          {"title": "適用ルート", "body": "送信元サブネット\nの有効な経路"},
+          {"title": "宛先IP", "body": "10.2.1.4\nVM 2"},
+          {"title": "次ホップ", "body": "選択した経路に\n基づいて転送"}
+        ],
+        "callout": "要求と応答は送信元が異なるため、往路と復路を別々に確認する。",
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-networks-udr-overview"}
+        ],
+        "notes": "図はAzure側の論理的なルート選択を示し、途中のFirewall、NVA、ゲートウェイ、ゲストOSの処理は省略しています。ルートの存在だけではNSGなどの許可や接続成功を保証しません。"
+      },
+      {
+        "kicker": "ルートの由来",
+        "title": "Azureのルートはシステム・UDR・BGPに分ける",
+        "lead": "ルートの由来と用途を区別すると、どの設定・伝播を確認するか判断できます。[1]",
+        "layout": "table",
+        "headers": ["由来", "誰が用意するか", "主な用途"],
+        "rows": [
+          ["システムルート", "Azure", "VNet内・ピアリング先などの基本経路"],
+          ["ユーザー定義ルート（UDR）", "利用者", "Firewall / NVAへの誘導など"],
+          ["BGPルート", "ゲートウェイ等の経路交換", "オンプレミス経路などの動的な学習"]
+        ],
+        "callout": "ルートテーブルがなくてもシステムルートは適用される。",
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-networks-udr-overview"}
+        ],
+        "notes": "UDRは宛先プレフィックスと次ホップを利用者が指定します。VPN GatewayなどのBGP経路は伝播して適用されます。経路の有効化とNSG・Firewallの許可は別に確認します。"
+      },
+      {
+        "kicker": "UDRの適用",
+        "title": "UDRは送信元サブネットへの関連付けで適用される",
+        "lead": "ルートテーブルへのUDR登録だけではVMに反映されず、対象サブネットへの関連付けが必要です。[1]",
+        "layout": "flow",
+        "steps": [
+          {"title": "ルートテーブル", "body": "宛先と\n次ホップを登録"},
+          {"title": "関連付け", "body": "対象VMが属する\n送信元サブネット"},
+          {"title": "有効なルート", "body": "システム・UDR\n伝播経路の適用結果"},
+          {"title": "NICで確認", "body": "宛先ごとの\nNext hopを確認"}
+        ],
+        "callout": "1つのサブネットに関連付けられるルートテーブルは最大1つ。",
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-networks-udr-overview#custom-routes"}
+        ],
+        "notes": "同じルートテーブルを複数サブネットで共有できます。関連付けの成否だけでなく、対象VMのNICに表示される有効ルートを確認します。"
+      },
+      {
+        "kicker": "ルート選択",
+        "title": "ルート選択は最長プレフィックス一致が先",
+        "lead": "宛先IPに一致する候補から最も具体的なプレフィックスを選び、同じ長さの候補で優先順位を比較します。[1]",
+        "layout": "compare",
+        "groups": [
+          {
+            "title": "UDR追加前",
+            "items": [
+              "0.0.0.0/0 → NVA",
+              "10.2.0.0/16 → ピアリング",
+              "10.2.1.4には、より具体的な /16 が選ばれる。"
+            ]
+          },
+          {
+            "title": "同じ /16 のUDR追加後",
+            "items": [
+              "UDR: 10.2.0.0/16 → NVA",
+              "システム: 10.2.0.0/16 → ピアリング",
+              "同じプレフィックスでは、基本的にUDRが優先される。"
+            ]
+          }
+        ],
+        "callout": "この例はSpoke間が直接ピアリングされている構成を仮定する。",
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-networks-udr-overview#how-azure-selects-routes-for-traffic-routing"}
+        ],
+        "notes": "例の宛先は10.2.1.4です。追加前は0.0.0.0/0より具体的な10.2.0.0/16のピアリングルートが選ばれます。追加後は同一プレフィックスの候補になり、基本的な優先順位でUDRが選ばれます。NVAの転送設定と復路は別途成立させる必要があります。"
+      },
+      {
+        "kicker": "ルート選択の例外",
+        "title": "Azureのルート選択には基本優先順位の例外がある",
+        "lead": "プレフィックス長と同一長の優先順位だけで断定せず、特別な経路の扱いを確認します。[1]",
+        "layout": "bullets",
+        "items": [
+          "VNet内・ピアリング・サービスエンドポイントに関する一部システムルートは、BGPとの比較で特別な扱いがある。",
+          "サービスエンドポイントのルートは、UDRで上書きできない。",
+          "Private Endpointはサービスエンドポイントとは別の機能である。",
+          "候補経路を整理した後、NICの有効なルートと宛先ごとのNext hopを確認する。"
+        ],
+        "callout": "特別な扱いの判定に迷う場合は、該当する公式仕様を参照する。",
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-networks-udr-overview#how-azure-selects-routes-for-traffic-routing"}
+        ],
+        "notes": "スライドは基本的なルート選択規則の例外を示します。個別の構成では、サービスエンドポイント等の仕様とNICの有効なルート・Next hopを確認してください。"
+      },
+      {
+        "kicker": "Next hop",
+        "title": "Next hopは転送先であり、接続成功の証明ではない",
+        "lead": "Next hopの表示からAzure側の次の転送先を読み取り、後続の処理は別に検証します。[1][2]",
+        "layout": "table",
+        "headers": ["表示例", "読み取る内容"],
+        "rows": [
+          ["VnetLocal / VNetPeering", "VNet内またはピアリング先へ転送"],
+          ["VirtualAppliance", "指定したFirewall / NVAのプライベートIPへ転送"],
+          ["VirtualNetworkGateway", "VPN / ExpressRoute構成と経路の由来を確認"],
+          ["Internet / None", "送信出口の有無、または経路不足による破棄を確認"]
+        ],
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-networks-udr-overview"},
+          {"url": "https://learn.microsoft.com/ja-jp/azure/network-watcher/network-watcher-next-hop-overview"}
+        ],
+        "notes": "VNetPeeringは有効ルートで確認する種類で、UDRの任意の次ホップとして設定するものではありません。Internetへのルート表示だけでSNATなどの外部送信手段があるとは判断できません。"
+      },
+      {
+        "kicker": "役割の区別",
+        "title": "経路・通信許可・送信出口・アプリを分ける",
+        "lead": "それぞれ異なる問いに答える機能であり、一つの正常結果を他の段階の正常証明にしません。[1][2]",
+        "layout": "table",
+        "headers": ["確認対象", "答える問い", "代表的な設定"],
+        "rows": [
+          ["ルーティング", "どちらへ転送するか", "UDR、BGP、ピアリング"],
+          ["フィルタリング", "通信を許可するか", "NSG、Firewall、NVA、OS"],
+          ["送信接続", "外部へ出る出口・変換があるか", "NAT Gateway、Firewall SNAT"],
+          ["アプリケーション", "宛先でサービスが応答するか", "待ち受け、TLS、アプリ設定"]
+        ],
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/virtual-network/network-security-groups-overview"},
+          {"url": "https://learn.microsoft.com/ja-jp/azure/virtual-network/ip-services/default-outbound-access"}
+        ],
+        "notes": "NSGはステートフルです。許可済み接続の応答と、相手側から新たに開始する接続を区別します。NSG評価とFirewall評価、インターネット出口、アプリケーションの待ち受けはそれぞれ別に確認します。"
+      }
+    ],
+    "quiz": [
+      "0.0.0.0/0のUDRと10.2.0.0/16のピアリングルートがある場合、10.2.1.4宛てに選ばれる候補はどれですか。",
+      "ルートテーブルにUDRがあるのに対象VMの経路へ反映されない場合、何を確認しますか。",
+      "Next hopがVirtualApplianceでもTCP接続が失敗するとき、次に確認する層を挙げてください。"
+    ]
+  },
+  {
+    "id": "02",
+    "folder": "02-代表的な構成と設計ポイント",
+    "label": "第2章",
+    "title": "代表的な構成と設計ポイント",
+    "subtitle": "接続・検査・ゲートウェイ共有を通信要件から設計する",
+    "footer": "第2章  代表的な構成と設計ポイント",
+    "meta": "共通例のアドレスは設計説明用",
+    "chips": ["VNet Peering", "Hub-Spoke", "往復経路"],
+    "goal": "通信要件に応じてVNetピアリング、Hub-Spoke、ゲートウェイ共有を使い分ける。",
+    "slides": [
+      {
+        "kicker": "構成例",
+        "title": "Hub-Spoke構成例は共有機能とワークロードを分ける",
+        "lead": "HubのFirewall / NVAをSpoke VM間に配置した説明用の構成です。[1]",
+        "layout": "flow",
+        "steps": [
+          {"title": "Spoke 1", "body": "10.1.0.0/16\nVM 1: 10.1.1.4"},
+          {"title": "Hub", "body": "10.0.0.0/16\nFirewall / NVA"},
+          {"title": "Spoke 2", "body": "10.2.0.0/16\nVM 2: 10.2.1.4"}
+        ],
+        "callout": "Hubとのピアリングだけでは、Spoke間の転送はまだ成立しない。",
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/architecture/networking/architecture/hub-spoke"}
+        ],
+        "notes": "アドレスとFirewall/NVAのIPは説明用の例です。Spoke間の直接ピアリングはありません。Azure Firewallを使う場合は専用サブネット名など製品固有の条件も確認します。"
+      },
+      {
+        "kicker": "VNet Peering",
+        "title": "VNetピアリングはVNet間を直接接続する",
+        "lead": "通常のピアリングは推移的ではなく、接続方法ごとに検査経路と経路管理が異なります。[1][2]",
+        "layout": "table",
+        "headers": ["通信要件", "構成の選択肢", "確認する点"],
+        "rows": [
+          ["Spoke同士を直接接続", "Spoke間の直接ピアリング", "Firewallを自動的に経由しない"],
+          ["Spoke間通信を検査", "Hub Firewall / NVA とUDR", "往復経路・転送許可・規則"],
+          ["多拠点の接続を集約", "Virtual WANなど", "通常のピアリングとは異なるモデル"]
+        ],
+        "callout": "Hubと各Spokeを接続しただけで、HubがSpoke間を中継するわけではない。",
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-network-peering-overview"},
+          {"url": "https://learn.microsoft.com/ja-jp/azure/architecture/networking/architecture/hub-spoke-virtual-wan-architecture"}
+        ],
+        "notes": "直接接続、検査付き転送、多拠点の集約は異なる要件です。直接ピアリングの基本構成ではAzure内外のアドレス空間が重複しないよう計画します。"
+      },
+      {
+        "kicker": "通信要件",
+        "title": "Hub-Spokeでは通信ごとに検査要否と経路を決める",
+        "lead": "共有機能を集めるだけで通信がHubへ集約されるわけではありません。[1]",
+        "layout": "table",
+        "headers": ["通信", "検査の要否", "想定経路"],
+        "rows": [
+          ["Spoke 1 → Spoke 2", "必要な場合", "Spoke 1 → Hub Firewall → Spoke 2"],
+          ["Spoke → Internet", "必要な場合", "Spoke → Hub Firewall → 外部"],
+          ["Spoke → オンプレミス", "組織要件による", "ゲートウェイ直結またはFirewall経由"],
+          ["同一Spoke内", "組織要件による", "VNet内の直接経路または別途設計"]
+        ],
+        "callout": "経路を決めた後、対応する往復UDR・規則・ログ取得点を設計する。",
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/architecture/networking/architecture/hub-spoke"}
+        ],
+        "notes": "この表は通信要件を整理するための説明例です。検査が必要かどうかは組織の要件で決めます。ネットワークの分離と通信拒否は同義ではなく、隔離はNSGやFirewallなどで実現します。"
+      },
+      {
+        "kicker": "Spoke間の検査",
+        "title": "Spoke間の検査には往路・復路のUDRが必要",
+        "lead": "プライベートIPを維持する説明例では、両Spokeの送信元サブネットからFirewallへ転送します。[1][2]",
+        "layout": "flow",
+        "steps": [
+          {"title": "VM 1 → VM 2", "body": "往路の宛先\n10.2.0.0/16"},
+          {"title": "Firewall / NVA", "body": "転送・検査\nログを確認"},
+          {"title": "VM 2 → VM 1", "body": "復路の宛先\n10.1.0.0/16"}
+        ],
+        "callout": "UDR以外に、ピアリングの転送許可・装置の転送・通信規則も必要。",
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-networks-udr-overview#custom-routes"},
+          {"url": "https://learn.microsoft.com/ja-jp/azure/architecture/networking/architecture/hub-spoke"}
+        ],
+        "notes": "Spoke 1のVM用サブネットに10.2.0.0/16向け、Spoke 2のVM用サブネットに10.1.0.0/16向けのUDRを設定する例です。SNATを使う場合は宛先から見える送信元と復路が変わるため、別途設計します。"
+      },
+      {
+        "kicker": "転送・許可",
+        "title": "UDR以外に転送処理と通信許可をそろえる",
+        "lead": "Azure FirewallとVMベースのNVAでは、転送・許可・可用性の確認方法が異なります。[1]",
+        "layout": "table",
+        "headers": ["確認対象", "Azure Firewall", "VMベースのNVA"],
+        "rows": [
+          ["転送先", "FirewallのプライベートIP", "転送用のプライベートIP"],
+          ["転送処理", "サービスの動作と経路", "Azure NICとOS / 製品側の転送"],
+          ["通信許可", "Firewall Policyなどの規則", "製品・NSG・OSの規則"],
+          ["可用性", "サービス構成を検討", "製品の冗長化・経路切替を設計"]
+        ],
+        "callout": "ピアリングの転送許可は経路やFirewall規則を作る設定ではない。",
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-networks-udr-overview#custom-routes"}
+        ],
+        "notes": "Azure Firewallはマネージドサービスです。VMベースのNVAではAzure側NICのIP転送とゲストOS / 製品側の転送設定を分けて確認します。ワークロード向けUDRをNVA自身に適用するとループの原因になる場合があります。"
+      },
+      {
+        "kicker": "インターネット向け通信",
+        "title": "インターネット出口は経路・送信方式・許可で設計する",
+        "lead": "既定ルートの設定に加え、実際の出口と通信許可を用意します。[1]",
+        "layout": "flow",
+        "steps": [
+          {"title": "経路", "body": "0.0.0.0/0\n→ FirewallのIP"},
+          {"title": "送信出口", "body": "FirewallのSNAT\nまたはNAT Gateway"},
+          {"title": "通信許可", "body": "Firewall規則\nNSG / OS / アプリ"}
+        ],
+        "callout": "Internetへのルートがあるだけでは、外部接続は保証されない。",
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/virtual-network/ip-services/default-outbound-access"}
+        ],
+        "notes": "検査が必要ならFirewallなどを使い、検査不要で送信元IP固定などが目的ならNAT Gatewayも選択肢です。NAT Gateway自体はFirewallのような通信検査を行いません。2026年3月31日以降にリリースされたAPIで新規作成するVNetのサブネットは既定でプライベートとなるため、実際のAPIと設定を確認します。"
+      },
+      {
+        "kicker": "VPN・ExpressRoute",
+        "title": "ゲートウェイ共有と経路伝達は別々に確認する",
+        "lead": "HubのゲートウェイをSpokeで共有する場合、HubとSpokeの設定が対応している必要があります。[1]",
+        "layout": "compare",
+        "groups": [
+          {
+            "title": "Hub側",
+            "items": [
+              "Allow gateway transitを設定する。",
+              "HubがゲートウェイをSpokeへ共有する。",
+              "Hubからオンプレミスへの経路も確認する。"
+            ]
+          },
+          {
+            "title": "Spoke側",
+            "items": [
+              "Use remote gatewaysを設定する。",
+              "必要なゲートウェイルートを受け取る。",
+              "オンプレミスからの復路も確認する。"
+            ]
+          }
+        ],
+        "callout": "ゲートウェイ共有はFirewall検査や一般的な推移転送を有効にしない。",
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/vpn-gateway/vpn-gateway-peering-gateway-transit"}
+        ],
+        "notes": "Spokeが自身のゲートウェイを持つ場合など共有に制約があります。GatewaySubnetのルート伝達を無効化するとゲートウェイ動作に影響するため無効化しません。"
+      },
+      {
+        "kicker": "マネージド接続",
+        "title": "Virtual WANとRoute Serverは解決する課題が異なる",
+        "lead": "接続の集約とBGP経路交換を区別し、Firewallの検査機能と混同しません。[1][2]",
+        "layout": "table",
+        "headers": ["選択肢", "主な役割", "混同しないこと"],
+        "rows": [
+          ["自前のHub-Spoke", "共有機能・検査経路を自分で設計", "ピアリングだけでSpoke間転送は成立しない"],
+          ["Azure Virtual WAN", "多拠点接続をマネージドハブで集約", "関連付け・伝播など独自設計が必要"],
+          ["Azure Route Server", "AzureとNVAの間でBGP経路を交換", "データ通信の中継・検査をしない"]
+        ],
+        "callout": "本ワークショップは動作を追いやすい自前のHub-SpokeとUDRを中心に扱う。",
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/architecture/networking/architecture/hub-spoke-virtual-wan-architecture"},
+          {"url": "https://learn.microsoft.com/ja-jp/azure/route-server/overview"}
+        ],
+        "notes": "Virtual WANは通常のVNetピアリングと異なるルーティングモデルを持ちます。Route Serverは制御プレーンとして経路を交換し、実際の転送・検査はNVAなどが担当します。"
+      }
+    ],
+    "quiz": [
+      "Hubと2つのSpokeをピアリングするだけで、Spoke間通信は成立しますか。",
+      "Spoke 1だけにSpoke 2向けUDRを追加した場合、Firewall経由の双方向通信を保証できますか。",
+      "Route Serverを配置するとNVAの通信検査を置き換えられますか。"
+    ]
+  },
+  {
+    "id": "03",
+    "folder": "03-トラブルシューティング",
+    "label": "第3章",
+    "title": "トラブルシューティング",
+    "subtitle": "観測結果から次に確認する層を絞り込む",
+    "footer": "第3章  トラブルシューティング",
+    "meta": "共通例：VM 1からVM 2へTCP接続",
+    "chips": ["条件の固定", "観測ツール", "証拠の記録"],
+    "goal": "通信条件を固定し、Azureの経路・許可・転送・アプリケーションを証拠で切り分ける。",
+    "slides": [
+      {
+        "kicker": "調査条件",
+        "title": "障害切り分けは通信条件を固定して始める",
+        "lead": "同じ「接続できない」でも条件が異なれば原因が変わるため、試験対象を先に記録します。",
+        "layout": "columns",
+        "groups": [
+          {
+            "title": "通信を特定する",
+            "items": [
+              "発生時刻とタイムゾーンを記録する。",
+              "送信元VM・NIC・IPと所属サブネットを記録する。",
+              "宛先IPまたはFQDN、プロトコル、宛先ポートを記録する。"
+            ]
+          },
+          {
+            "title": "期待値と現象を残す",
+            "items": [
+              "期待経路と実際の症状を記録する。",
+              "送信元ポートが不明なら「未確認」と記録する。",
+              "診断で仮の条件を使った場合は実通信との差を確認する。"
+            ]
+          }
+        ],
+        "callout": "複数の設定を同時に変えず、新しい接続で再現性を確認する。",
+        "notes": "共通例はVM 1（10.1.1.4）からVM 2（10.2.1.4）へTCP接続し、HubのFirewall / NVA（10.0.1.4）を通る構成です。"
+      },
+      {
+        "kicker": "切り分け順序",
+        "title": "調査はDNS・経路・許可・転送・アプリに分ける",
+        "lead": "各段階の正常結果を別の段階の正常証明にせず、観測に応じて次の確認先を決めます。",
+        "layout": "flow",
+        "steps": [
+          {"title": "名前解決", "body": "FQDNが\n想定IPへ解決するか"},
+          {"title": "経路", "body": "送信元NICの\n有効ルートとNext hop"},
+          {"title": "許可・復路", "body": "NSG・Firewall\n転送と応答経路"},
+          {"title": "アプリ", "body": "待ち受け・TLS\n認証・応答"}
+        ],
+        "callout": "TCP接続に成功しても、TLS・認証・アプリケーション応答は別に確認する。",
+        "notes": "実際にはConnection troubleshootから調査先を絞っても構いません。FQDNをIPに置き換えたHTTPS試験は、SNIやHostヘッダーの違いにより同じ条件とは限りません。"
+      },
+      {
+        "kicker": "有効なルート",
+        "title": "有効なルートは実際のVM NICで確認する",
+        "lead": "UDRリソースの設定だけでなく、送信元VMに適用されたプレフィックスと次ホップを確認します。[1][2]",
+        "layout": "compare",
+        "groups": [
+          {
+            "title": "往路：VM 1 → VM 2",
+            "items": [
+              "VM 1の実際のNICと所属サブネットを確認する。",
+              "宛先10.2.1.4を含む有効ルートを確認する。",
+              "期待値例：VirtualAppliance / 10.0.1.4"
+            ]
+          },
+          {
+            "title": "復路：VM 2 → VM 1",
+            "items": [
+              "VM 2の実際のNICで別に確認する。",
+              "宛先10.1.1.4に対する有効ルートを確認する。",
+              "Azure経路の先のNVA・OS・アプリは別確認する。"
+            ]
+          }
+        ],
+        "callout": "有効なルートはAzure側の適用結果であり、ゲストOSの経路ではない。",
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/virtual-network/diagnose-network-routing-problem"},
+          {"url": "https://learn.microsoft.com/ja-jp/azure/network-watcher/network-watcher-next-hop-overview"}
+        ],
+        "notes": "対象のVMが稼働中であることや、必要な権限など取得条件を確認します。ルートの状態、由来、宛先プレフィックス、より具体的な候補も調べます。"
+      },
+      {
+        "kicker": "Network Watcher",
+        "title": "Network Watcherの機能は問いに合わせて選ぶ",
+        "lead": "各機能が答える問いと、結果だけでは分からないことを組み合わせます。[1][2]",
+        "layout": "table",
+        "headers": ["機能", "答える問い", "結果だけでは分からないこと"],
+        "rows": [
+          ["Next hop", "宛先IPへの次ホップは何か", "転送成功・復路・TCP成功"],
+          ["IP flow verify", "指定条件をNSGが許可するか", "Firewall・OS・アプリの状態"],
+          ["Connection troubleshoot", "接続の問題兆候はあるか", "継続的な正常性・全装置の内部状態"],
+          ["Topology / Packet capture", "構成上の接続 / 実パケットは何か", "未観測地点の到達性"]
+        ],
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/network-watcher/network-watcher-overview"},
+          {"url": "https://learn.microsoft.com/ja-jp/azure/network-watcher/ip-flow-verify-overview"}
+        ],
+        "notes": "IP flow verifyのAllowはNSGの許可評価であり、Firewallやエンドツーエンド接続の成功を証明しません。Topologyは構成上の接続、Packet captureは対象VMで観測した実パケットを示します。"
+      },
+      {
+        "kicker": "転送と復路",
+        "title": "Firewall / NVAの前後で要求と応答を追う",
+        "lead": "Next hopが正しい場合は、装置への到着・許可・転送・宛先・復路を順に観測します.[1]",
+        "layout": "flow",
+        "steps": [
+          {"title": "装置に到着", "body": "Firewall / NVAで\n対象通信を観測"},
+          {"title": "許可・転送", "body": "規則・製品設定\n送信パケットを確認"},
+          {"title": "宛先の応答", "body": "受信・待ち受け\n応答の有無を確認"},
+          {"title": "送信元へ戻る", "body": "復路UDR・変換\n到着パケットを確認"}
+        ],
+        "callout": "ログが見つからないだけでは、パケットが届いていないとは断定できない。",
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/network-watcher/packet-capture-overview"}
+        ],
+        "notes": "VMベースのNVAはAzure NICのIP転送とOS / 製品側の転送を分けて調べます。NATがある構成では変換前後のIP・ポートを確認します。ログの診断設定、検索条件、時刻、取り込み遅延も確認します。"
+      },
+      {
+        "kicker": "ログの活用",
+        "title": "フローログ・装置ログ・アプリログを組み合わせる",
+        "lead": "情報源ごとに記録範囲が異なり、フローログはパケット本文やアプリ処理結果を示しません。[1][2]",
+        "layout": "table",
+        "headers": ["情報源", "主な確認内容"],
+        "rows": [
+          ["VNet flow logs", "IP・ポート等のフロー情報と通信傾向"],
+          ["Firewall / NVAログ", "適用規則、許可・拒否、転送や変換"],
+          ["OS / アプリログ", "待ち受け、TLS・認証、アプリ応答"],
+          ["NSG flow logs", "新規作成不可。既存環境の移行を検討"]
+        ],
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/network-watcher/vnet-flow-logs-overview"},
+          {"url": "https://learn.microsoft.com/ja-jp/azure/network-watcher/nsg-flow-logs-overview"}
+        ],
+        "notes": "NSG flow logsは2025年6月30日以降、新規作成できず、2027年9月30日に廃止予定です。新しい環境ではVNet flow logsを前提にします。保存先、対象範囲、反映時間、コストも確認します。"
+      },
+      {
+        "kicker": "調査記録",
+        "title": "観測事実・原因・変更・再試験を分けて記録する",
+        "lead": "次の担当者が判断を再現できるように、設定変更前後の証拠を残します。",
+        "layout": "flow",
+        "steps": [
+          {"title": "現象", "body": "条件・時刻\n期待経路を記録"},
+          {"title": "事実", "body": "ルート・Next hop\n規則・ログを記録"},
+          {"title": "変更", "body": "原因と修正内容\n影響を記録"},
+          {"title": "再試験", "body": "新しい接続で\n結果を照合"}
+        ],
+        "callout": "推測を観測事実と混ぜず、複数の設定を同時に変更しない。",
+        "notes": "原因の判断を観測結果に結び付け、変更後には宛先受信、応答、送信元受信、アプリケーション応答まで確認します。"
+      }
+    ],
+    "quiz": [
+      "IP flow verifyがAllowを返した場合、どの層の通信成功が確認でき、どの層は未確認ですか。",
+      "Topologyに接続が表示された場合、実際のパケットが成功したと言えますか。",
+      "Next hopが設計どおりなのに接続できないとき、次に調べる証拠を挙げてください。"
+    ]
+  },
+  {
+    "id": "04",
+    "folder": "04-よくある失敗",
+    "label": "第4章",
+    "title": "よくある失敗",
+    "subtitle": "症状から原因を決めつけず、確認する証拠を選ぶ",
+    "footer": "第4章  よくある失敗",
+    "meta": "確認順：症状 → 原因候補 → 証拠 → 是正・予防",
+    "chips": ["設定漏れ", "経路選択", "復路"],
+    "goal": "典型的なルーティング・転送・復路の失敗を症状と証拠から切り分ける。",
+    "slides": [
+      {
+        "kicker": "失敗の分類",
+        "title": "ネットワークの失敗を設定・経路・転送・復路に分ける",
+        "lead": "同じ症状でも原因が異なるため、証拠を確認してから是正します。",
+        "layout": "columns",
+        "groups": [
+          {
+            "title": "設定・適用",
+            "items": [
+              "UDRを作成したが対象サブネットに未関連付け。",
+              "ルートテーブルを送信元とは別のサブネットに関連付け。"
+            ]
+          },
+          {
+            "title": "経路・転送",
+            "items": [
+              "具体的な経路を見落とす。",
+              "HubはSpoke間を自動中継しない。[1]"
+            ]
+          },
+          {
+            "title": "復路・観測",
+            "items": [
+              "往路だけFirewallへ誘導し、応答経路を設計しない。",
+              "ログがないことを通信がなかった証拠とみなす。"
+            ]
+          }
+        ],
+        "callout": "症状 → 原因候補 → 確認する証拠 → 是正・予防の順で考える。",
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-network-peering-overview"}
+        ],
+        "notes": "本章はMarkdownの典型例から、失敗が発生する構造と確認の観点をまとめています。以下の具体例も、症状だけで原因を断定せず、提示された証拠を確認してください。"
+      },
+      {
+        "kicker": "UDRの適用",
+        "title": "UDRが効かないときは関連付け先と経路長を確認する",
+        "lead": "UDRの登録内容に加え、VMの有効ルートと宛先に一致する経路を確認します。[1]",
+        "layout": "compare",
+        "groups": [
+          {
+            "title": "症状：UDRが反映されない",
+            "items": [
+              "対象VMのNICと所属サブネットを確認する。",
+              "その送信元サブネットに関連付くRTを確認する。",
+              "宛先への有効ルートとNext hopを確認する。"
+            ]
+          },
+          {
+            "title": "症状：/0が選ばれない",
+            "items": [
+              "宛先IPに一致する全候補を調べる。",
+              "0.0.0.0/0より具体的な経路を確認する。[2]",
+              "ルートのプレフィックス長を比較する。"
+            ]
+          }
+        ],
+        "callout": "Firewallログの有無だけで選択経路を判断しない。",
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-networks-udr-overview#custom-routes"},
+          {"url": "https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-networks-udr-overview#how-azure-selects-routes-for-traffic-routing"}
+        ],
+        "notes": "より具体的なピアリングルートが0.0.0.0/0より選択される例では、Firewallログに記録されないことがあります。ルートの特別な扱いやサービスエンドポイントの例外も確認します。"
+      },
+      {
+        "kicker": "ピアリング",
+        "title": "HubとのピアリングだけではSpoke間を中継しない",
+        "lead": "通常のVNetピアリングは推移的ではなく、Hubが自動的に別のピアリングへ中継しません。[1]",
+        "layout": "flow",
+        "steps": [
+          {"title": "Spoke 1", "body": "Hubとは\nピアリング済み"},
+          {"title": "Hub", "body": "通常のピアリングは\n自動中継しない"},
+          {"title": "Spoke 2", "body": "Hubとは\nピアリング済み"}
+        ],
+        "callout": "直接通信にはSpoke間ピアリング、検査にはFirewall / NVAと往復UDRを設計する。",
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-network-peering-overview"}
+        ],
+        "notes": "直接通信か検査付き転送かで構成が変わります。図のHubがルーターとして自動動作するわけではありません。"
+      },
+      {
+        "kicker": "NVAの転送",
+        "title": "NVAはAzure NICとOS・製品側の転送を分けて確認する",
+        "lead": "Next hopがNVAでも、受信後の転送や製品ポリシーが別に必要です。[1]",
+        "layout": "compare",
+        "groups": [
+          {
+            "title": "Azure側",
+            "items": [
+              "UDRのVirtualAppliance IPが正しいか。",
+              "Azure NICのIP転送が有効か。",
+              "ピアリングやNSGの許可があるか。"
+            ]
+          },
+          {
+            "title": "ゲストOS / 製品側",
+            "items": [
+              "OSのIP転送が有効か。",
+              "NVAポリシーが対象通信を許可するか。",
+              "受信・送信パケットと拒否ログを確認する。"
+            ]
+          }
+        ],
+        "callout": "Azure Firewallに、Linux NVA向けのOS転送設定を流用しない。",
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-networks-udr-overview#custom-routes"}
+        ],
+        "notes": "VMベースのNVAではAzure NICのIP転送とゲストOS / 製品側の設定を両方確認します。マネージドのAzure Firewallに利用者がOSレベルの転送設定を行うことはありません。"
+      },
+      {
+        "kicker": "非対称ルーティング",
+        "title": "Firewall経由の往路だけではTCP接続は成立しない",
+        "lead": "要求と応答が別方向に進むため、状態を追跡する装置では往復経路を合わせます。[1]",
+        "layout": "flow",
+        "steps": [
+          {"title": "VM 1", "body": "要求を送信\n往路UDR"},
+          {"title": "Firewall", "body": "要求を受信\n状態を追跡"},
+          {"title": "VM 2", "body": "応答を送信\n復路UDR"},
+          {"title": "VM 1へ戻る", "body": "応答が同じ\n検査経路を通る"}
+        ],
+        "callout": "NSGに逆向きの広域許可を足しても、復路のルート不足は直らない。",
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/architecture/networking/architecture/hub-spoke"}
+        ],
+        "notes": "両方のVM NICで相手IP宛てのNext hopを確認し、要求と応答がどこまで観測できるかを追います。SNATがある場合は変換後の送信元と復路も確認します。"
+      },
+      {
+        "kicker": "NSGとログ",
+        "title": "NSGの既存接続とログ未記録を誤解しない",
+        "lead": "新規接続と既存接続、ログの未記録と通信の不存在を分けて判断します。[1][2]",
+        "layout": "compare",
+        "groups": [
+          {
+            "title": "NSGの評価",
+            "items": [
+              "拒否規則の追加後に新しい接続で試験する。",
+              "既存接続が続くことだけでは設定失敗と判断しない。",
+              "相手から新たに開始する通信は別に評価する。"
+            ]
+          },
+          {
+            "title": "ログの評価",
+            "items": [
+              "診断設定・対象・時刻・検索条件を確認する。",
+              "ログ取得前の通信は後から記録できない。",
+              "NSG flow logsの廃止予定と移行先を確認する。"
+            ]
+          }
+        ],
+        "callout": "新規環境はVNet flow logsを前提にし、取得できる範囲を確認する。",
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/virtual-network/network-security-groups-overview"},
+          {"url": "https://learn.microsoft.com/ja-jp/azure/network-watcher/vnet-flow-logs-overview"}
+        ],
+        "notes": "NSGはステートフルで、許可された接続の応答は同じ接続の一部として扱われます。NSG flow logsは2025年6月30日以降新規作成できず、2027年9月30日に廃止予定です。"
+      },
+      {
+        "kicker": "接続設計",
+        "title": "ゲートウェイ共有とインターネット出口は経路を揃える",
+        "lead": "共有設定、ゲートウェイルート伝達、外部送信方式を別々に確認します。[1][2]",
+        "layout": "table",
+        "headers": ["確認対象", "不足時に起きること", "確認する証拠"],
+        "rows": [
+          ["Gateway Transit / Remote Gateway", "Spokeからオンプレミス経路を使えない", "両側のピアリング設定と有効ルート"],
+          ["経路伝達", "Spokeに必要なプレフィックスがない", "Spokeの有効ルートとオンプレミスの復路"],
+          ["明示的な送信方式", "外部通信の出口が成立しない", "Next hop、NAT / Firewall出口、規則"]
+        ],
+        "callout": "設定変更前に管理接続への影響と切り戻し方法を決める。",
+        "sources": [
+          {"url": "https://learn.microsoft.com/ja-jp/azure/vpn-gateway/vpn-gateway-peering-gateway-transit"},
+          {"url": "https://learn.microsoft.com/ja-jp/azure/virtual-network/ip-services/default-outbound-access"}
+        ],
+        "notes": "GatewaySubnetではゲートウェイルートの伝達を無効化しません。VPN / ExpressRouteのトンネル正常性だけでは、Spokeとオンプレミスの往復経路が揃っているとは判断できません。"
+      },
+      {
+        "kicker": "変更前後の確認",
+        "title": "変更前に往復経路・許可・復旧条件を確認する",
+        "lead": "設定値だけでなく正常時の結果を保存し、変更後の比較基準にします。",
+        "layout": "bullets",
+        "items": [
+          "送信元・宛先・プロトコル・ポートを具体化した。",
+          "往路と復路のプレフィックス・次ホップを説明できる。",
+          "UDR関連付け、転送許可、NSG・Firewall規則を別々に確認した。",
+          "管理接続・切り戻し方法・正常時のルートと疎通結果を記録した。"
+        ],
+        "callout": "一度に1項目を変更し、同じ通信条件で再試験する。",
+        "notes": "Markdownの設計・変更前チェックを、作業前後に使う4つの確認項目へ整理しています。アドレス重複、直接経路と検査経路の区別、外部送信方式なども構成に応じて確認します。"
+      }
+    ],
+    "quiz": [
+      "0.0.0.0/0のUDRがあるのに、直接ピアリング先へ送った通信がFirewallを通らない場合、何を確認しますか。",
+      "NVAのNext hopが正しいのに転送されない場合、Azure側とOS / 製品側で何を分けて確認しますか。",
+      "要求は宛先へ届き、応答も送信されたのに送信元へ戻らない場合、どの経路と観測点を確認しますか。"
+    ]
+  }
+]

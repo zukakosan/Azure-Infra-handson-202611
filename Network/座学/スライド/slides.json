@@ -1,0 +1,411 @@
+{
+  "title": "Azureネットワーク座学",
+  "subtitle": "ルーティングの基礎・構成設計・障害切り分け",
+  "style_basis": "別ファイルのデザインガイドは使用せず、ユーザー承認のもとテンプレートのブランド要素と座学Markdownの表記を基準とする。",
+  "agenda": [
+    "Azureの経路選択を理解する",
+    "通信要件から構成を設計する",
+    "観測結果から障害を切り分ける",
+    "変更前後を証拠で説明する"
+  ],
+  "slides": [
+    {
+      "title": "この座学で身につける4つの力",
+      "notes": "用語暗記ではなく、構成を読み、変更の影響を予測し、意図した経路を設定し、観測結果から障害を切り分けることがゴールです。AI活用はストレッチであり、実際の構成と診断結果による検証を省略しません。",
+      "sources": [],
+      "elements": [
+        {"kind":"circle","x":70,"y":160,"w":74,"h":74,"fill":"#000FB3","line":"#000FB3"},
+        {"kind":"text","x":70,"y":180,"w":74,"h":30,"text":"1","size":26,"color":"#FFFFFF","bold":true,"align":"center"},
+        {"kind":"text","x":45,"y":250,"w":125,"h":36,"text":"理解する","size":20,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"text","x":42,"y":291,"w":135,"h":66,"text":"構成と経路を\\n説明する","size":16,"color":"#202020","align":"center"},
+        {"kind":"arrow","x1":180,"y1":198,"x2":260,"y2":198,"color":"#0078D4","width":2},
+        {"kind":"circle","x":280,"y":160,"w":74,"h":74,"fill":"#0078D4","line":"#0078D4"},
+        {"kind":"text","x":280,"y":180,"w":74,"h":30,"text":"2","size":26,"color":"#FFFFFF","bold":true,"align":"center"},
+        {"kind":"text","x":255,"y":250,"w":125,"h":36,"text":"設定する","size":20,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"text","x":250,"y":291,"w":140,"h":66,"text":"意図した経路を\\n構成する","size":16,"color":"#202020","align":"center"},
+        {"kind":"arrow","x1":390,"y1":198,"x2":470,"y2":198,"color":"#0078D4","width":2},
+        {"kind":"circle","x":490,"y":160,"w":74,"h":74,"fill":"#107C10","line":"#107C10"},
+        {"kind":"text","x":490,"y":180,"w":74,"h":30,"text":"3","size":26,"color":"#FFFFFF","bold":true,"align":"center"},
+        {"kind":"text","x":465,"y":250,"w":125,"h":36,"text":"検証する","size":20,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"text","x":460,"y":291,"w":145,"h":66,"text":"有効なルートと\\n疎通を確認する","size":16,"color":"#202020","align":"center"},
+        {"kind":"arrow","x1":600,"y1":198,"x2":680,"y2":198,"color":"#0078D4","width":2},
+        {"kind":"circle","x":700,"y":160,"w":74,"h":74,"fill":"#5C2D91","line":"#5C2D91"},
+        {"kind":"text","x":700,"y":180,"w":74,"h":30,"text":"4","size":26,"color":"#FFFFFF","bold":true,"align":"center"},
+        {"kind":"text","x":675,"y":250,"w":125,"h":36,"text":"切り分ける","size":20,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"text","x":670,"y":291,"w":145,"h":66,"text":"証拠から原因を\\n絞り込む","size":16,"color":"#202020","align":"center"},
+        {"kind":"text","x":65,"y":405,"w":815,"h":42,"text":"ストレッチ：AIで仮説や確認手順を整理し、Azureの実測値で検証する","size":18,"color":"#5C2D91","bold":true,"align":"center"}
+      ]
+    },
+    {
+      "title": "往路と復路は別々に経路を判断する",
+      "notes": "Azure側のルートは、送信元VMが所属するサブネットへ適用される経路を使って、宛先IPに対する次ホップを決めます。応答パケットは相手側から見た新しい送信です。図では途中のFirewall/NVAやゲストOSの処理を省略しています。ルートが存在してもNSGなどが拒否すれば通信は成立しません。",
+      "sources": [
+        {"label":"Microsoft Learn: Azureのルーティング","url":"https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-networks-udr-overview"}
+      ],
+      "elements": [
+        {"kind":"rect","x":65,"y":170,"w":210,"h":110,"fill":"#EAF3FF","line":"#0078D4"},
+        {"kind":"text","x":80,"y":188,"w":180,"h":30,"text":"送信元 VM 1","size":20,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"text","x":80,"y":225,"w":180,"h":28,"text":"10.1.1.4","size":18,"color":"#202020","align":"center"},
+        {"kind":"rect","x":375,"y":170,"w":210,"h":110,"fill":"#F3F2F1","line":"#808080"},
+        {"kind":"text","x":390,"y":188,"w":180,"h":30,"text":"Azureのルート選択","size":19,"color":"#202020","bold":true,"align":"center"},
+        {"kind":"text","x":390,"y":225,"w":180,"h":28,"text":"送信元サブネットの経路","size":15,"color":"#404040","align":"center"},
+        {"kind":"rect","x":685,"y":170,"w":210,"h":110,"fill":"#EAF3FF","line":"#0078D4"},
+        {"kind":"text","x":700,"y":188,"w":180,"h":30,"text":"宛先 VM 2","size":20,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"text","x":700,"y":225,"w":180,"h":28,"text":"10.2.1.4","size":18,"color":"#202020","align":"center"},
+        {"kind":"arrow","x1":275,"y1":205,"x2":375,"y2":205,"color":"#0078D4","width":3},
+        {"kind":"arrow","x1":585,"y1":205,"x2":685,"y2":205,"color":"#0078D4","width":3},
+        {"kind":"text","x":300,"y":170,"w":70,"h":26,"text":"要求","size":15,"color":"#0078D4","bold":true,"align":"center"},
+        {"kind":"arrow","x1":685,"y1":330,"x2":585,"y2":330,"color":"#5C2D91","width":3},
+        {"kind":"arrow","x1":375,"y1":330,"x2":275,"y2":330,"color":"#5C2D91","width":3},
+        {"kind":"text","x":300,"y":340,"w":70,"h":26,"text":"応答","size":15,"color":"#5C2D91","bold":true,"align":"center"},
+        {"kind":"text","x":90,"y":400,"w":780,"h":40,"text":"往路：VM 1側の経路　｜　復路：VM 2側の経路","size":20,"color":"#000FB3","bold":true,"align":"center"}
+      ]
+    },
+    {
+      "title": "Azureのルートは3つの由来で捉える",
+      "notes": "システムルートはAzureが基本の接続性として用意します。UDRは利用者が宛先プレフィックスと次ホップを指定し、Firewall/NVAへの誘導などに使います。VPN GatewayなどからBGPで学習する経路は動的に伝播します。候補が複数ある場合はプレフィックス長と同一プレフィックス時の優先関係を確認します。",
+      "sources": [
+        {"label":"Microsoft Learn: Azureのルーティング","url":"https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-networks-udr-overview"}
+      ],
+      "elements": [
+        {"kind":"text","x":70,"y":135,"w":245,"h":38,"text":"システムルート","size":22,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"line","x1":90,"y1":185,"x2":295,"y2":185,"color":"#0078D4","width":3},
+        {"kind":"text","x":80,"y":210,"w":225,"h":78,"text":"Azureが自動で用意\\nVNet内・ピアリング先など","size":17,"color":"#202020","align":"center"},
+        {"kind":"text","x":358,"y":135,"w":245,"h":38,"text":"ユーザー定義ルート","size":22,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"line","x1":378,"y1":185,"x2":583,"y2":185,"color":"#F7630C","width":3},
+        {"kind":"text","x":368,"y":210,"w":225,"h":78,"text":"利用者が宛先と次ホップを指定\\nFirewall/NVAへの誘導など","size":17,"color":"#202020","align":"center"},
+        {"kind":"text","x":646,"y":135,"w":245,"h":38,"text":"BGPルート","size":22,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"line","x1":666,"y1":185,"x2":871,"y2":185,"color":"#107C10","width":3},
+        {"kind":"text","x":656,"y":210,"w":225,"h":78,"text":"ゲートウェイなどから学習\\nオンプレミス経路の伝播など","size":17,"color":"#202020","align":"center"},
+        {"kind":"text","x":100,"y":350,"w":760,"h":52,"text":"ルートテーブルを作成しただけでは適用されない。送信元サブネットへの関連付けを確認する。","size":19,"color":"#000FB3","bold":true,"align":"center"}
+      ]
+    },
+    {
+      "title": "UDRは送信元サブネットへの関連付けで適用される",
+      "notes": "ルートテーブルリソースを作成してUDRを登録しただけでは対象VMに適用されません。VMの送信元サブネットへ関連付けます。Azureが用意するシステムルートや伝播経路も含めた適用結果を、NICの有効なルートやNetwork WatcherのNext hopで確認します。",
+      "sources": [
+        {"label":"Microsoft Learn: カスタムルート","url":"https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-networks-udr-overview#custom-routes"}
+      ],
+      "elements": [
+        {"kind":"rect","x":60,"y":165,"w":195,"h":96,"fill":"#F3F2F1","line":"#808080"},
+        {"kind":"text","x":72,"y":182,"w":171,"h":28,"text":"ルートテーブル","size":19,"color":"#202020","bold":true,"align":"center"},
+        {"kind":"text","x":72,"y":216,"w":171,"h":28,"text":"UDRを格納","size":16,"color":"#404040","align":"center"},
+        {"kind":"arrow","x1":255,"y1":213,"x2":355,"y2":213,"color":"#0078D4","width":3},
+        {"kind":"text","x":260,"y":175,"w":90,"h":28,"text":"関連付け","size":14,"color":"#0078D4","bold":true,"align":"center"},
+        {"kind":"rect","x":355,"y":165,"w":195,"h":96,"fill":"#EAF3FF","line":"#0078D4"},
+        {"kind":"text","x":367,"y":182,"w":171,"h":28,"text":"送信元サブネット","size":18,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"text","x":367,"y":216,"w":171,"h":28,"text":"10.1.1.0/24","size":16,"color":"#202020","align":"center"},
+        {"kind":"arrow","x1":550,"y1":213,"x2":650,"y2":213,"color":"#0078D4","width":3},
+        {"kind":"rect","x":650,"y":165,"w":245,"h":96,"fill":"#DFF6DD","line":"#107C10"},
+        {"kind":"text","x":666,"y":182,"w":213,"h":28,"text":"有効なルート","size":19,"color":"#107C10","bold":true,"align":"center"},
+        {"kind":"text","x":666,"y":216,"w":213,"h":28,"text":"システム + UDR + 伝播経路","size":15,"color":"#202020","align":"center"},
+        {"kind":"arrow","x1":772,"y1":261,"x2":772,"y2":324,"color":"#107C10","width":2},
+        {"kind":"text","x":638,"y":330,"w":268,"h":40,"text":"VM NICで結果を確認","size":19,"color":"#107C10","bold":true,"align":"center"},
+        {"kind":"text","x":80,"y":365,"w":485,"h":48,"text":"1サブネットに関連付けできるルートテーブルは1つ","size":17,"color":"#404040","align":"center"}
+      ]
+    },
+    {
+      "title": "ルート選択は最長プレフィックス一致が先",
+      "notes": "宛先IPに一致する候補から最も具体的なプレフィックスを選びます。例の10.2.1.4には0.0.0.0/0と10.2.0.0/16が一致し、/16のピアリングルートが選ばれます。10.2.0.0/16のUDRを追加すると同一プレフィックス間の比較になり、基本的にはUDRが優先されます。直接ピアリング構成を仮定した例です。復路は別に確認します。",
+      "sources": [
+        {"label":"Microsoft Learn: Azureによるルート選択","url":"https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-networks-udr-overview#how-azure-selects-routes-for-traffic-routing"}
+      ],
+      "elements": [
+        {"kind":"text","x":68,"y":122,"w":390,"h":32,"text":"候補ルート（追加前）","size":20,"color":"#000FB3","bold":true},
+        {"kind":"text","x":68,"y":166,"w":390,"h":35,"text":"0.0.0.0/0  →  UDR / NVA","size":18,"color":"#404040"},
+        {"kind":"text","x":68,"y":210,"w":390,"h":35,"text":"10.2.0.0/16  →  ピアリング","size":18,"color":"#107C10","bold":true},
+        {"kind":"text","x":68,"y":262,"w":390,"h":36,"text":"宛先 10.2.1.4 では /16 が採用","size":18,"color":"#107C10","bold":true},
+        {"kind":"line","x1":485,"y1":125,"x2":485,"y2":410,"color":"#BFBFBF","width":1.5},
+        {"kind":"text","x":520,"y":122,"w":360,"h":32,"text":"同じプレフィックスなら","size":20,"color":"#000FB3","bold":true},
+        {"kind":"text","x":520,"y":166,"w":350,"h":38,"text":"UDR  →  BGP  →  システム","size":21,"color":"#F7630C","bold":true},
+        {"kind":"text","x":520,"y":218,"w":350,"h":68,"text":"10.2.0.0/16 のUDRを追加すると、\\n同じ /16 のピアリング経路より優先","size":17,"color":"#202020"},
+        {"kind":"rect","x":520,"y":315,"w":340,"h":66,"fill":"#FFF4CE","line":"#F7630C"},
+        {"kind":"text","x":535,"y":330,"w":310,"h":38,"text":"プレフィックス長 → 同一長の優先順位","size":16,"color":"#202020","bold":true,"align":"center"}
+      ]
+    },
+    {
+      "title": "基本の優先順位だけで断定しない",
+      "notes": "Azureには基本ルールの例外があります。VNet内、ピアリング、サービスエンドポイントに関する一部システムルートはBGPルートとの比較で特別な扱いがあります。また、サービスエンドポイントのルートはUDRで上書きできないため、実際のルート選択は公式仕様とNICの有効なルート・Next hopで検証します。Private Endpointはサービスエンドポイントとは別の機能です。",
+      "sources": [
+        {"label":"Microsoft Learn: ルート選択の例外","url":"https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-networks-udr-overview#how-azure-selects-routes-for-traffic-routing"}
+      ],
+      "elements": [
+        {"kind":"text","x":88,"y":135,"w":350,"h":35,"text":"例外を確認する対象","size":21,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"text","x":88,"y":190,"w":350,"h":90,"text":"VNet内のシステムルート\\nピアリングのシステムルート\\nサービスエンドポイントの経路","size":18,"color":"#202020","align":"center"},
+        {"kind":"line","x1":480,"y1":130,"x2":480,"y2":385,"color":"#BFBFBF","width":1.5},
+        {"kind":"text","x":520,"y":135,"w":330,"h":35,"text":"確認の順序","size":21,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"text","x":535,"y":190,"w":320,"h":90,"text":"宛先IPに一致する候補\\n特別な扱いの有無\\n有効なルートとNext hop","size":18,"color":"#202020","align":"center"},
+        {"kind":"rect","x":130,"y":340,"w":700,"h":58,"fill":"#FFF4CE","line":"#F7630C"},
+        {"kind":"text","x":150,"y":353,"w":660,"h":32,"text":"Private Endpointとサービスエンドポイントを混同しない","size":18,"color":"#202020","bold":true,"align":"center"}
+      ]
+    },
+    {
+      "title": "Next hopは次の処理を示し、成功は保証しない",
+      "notes": "VNetLocal、VNetPeering、VirtualAppliance、VirtualNetworkGateway、Internet、Noneなどの表示を読み分けます。VNetPeeringは有効ルートで確認する種類で、UDRに任意の次ホップとして設定するものではありません。Internetの経路表示だけでは、外部へ出るSNAT/出口の存在は証明できません。",
+      "sources": [
+        {"label":"Microsoft Learn: Next hop の概要","url":"https://learn.microsoft.com/ja-jp/azure/network-watcher/network-watcher-next-hop-overview"}
+      ],
+      "elements": [
+        {"kind":"text","x":72,"y":122,"w":210,"h":32,"text":"表示例","size":16,"color":"#606060","bold":true},
+        {"kind":"text","x":325,"y":122,"w":530,"h":32,"text":"読み取る内容","size":16,"color":"#606060","bold":true},
+        {"kind":"line","x1":68,"y1":155,"x2":885,"y2":155,"color":"#808080","width":1.2},
+        {"kind":"text","x":72,"y":165,"w":230,"h":35,"text":"VnetLocal / VNetPeering","size":17,"color":"#000FB3","bold":true},
+        {"kind":"text","x":325,"y":165,"w":530,"h":35,"text":"VNet内またはピアリング先へ転送","size":17,"color":"#202020"},
+        {"kind":"line","x1":68,"y1":205,"x2":885,"y2":205,"color":"#D0D0D0","width":0.8},
+        {"kind":"text","x":72,"y":215,"w":230,"h":35,"text":"VirtualAppliance","size":17,"color":"#F7630C","bold":true},
+        {"kind":"text","x":325,"y":215,"w":530,"h":35,"text":"指定したFirewall/NVAのIPへ転送","size":17,"color":"#202020"},
+        {"kind":"line","x1":68,"y1":255,"x2":885,"y2":255,"color":"#D0D0D0","width":0.8},
+        {"kind":"text","x":72,"y":265,"w":230,"h":35,"text":"VirtualNetworkGateway","size":16,"color":"#000FB3","bold":true},
+        {"kind":"text","x":325,"y":265,"w":530,"h":35,"text":"VPN/ExpressRoute構成と経路の由来を確認","size":17,"color":"#202020"},
+        {"kind":"line","x1":68,"y1":305,"x2":885,"y2":305,"color":"#D0D0D0","width":0.8},
+        {"kind":"text","x":72,"y":315,"w":230,"h":35,"text":"Internet / None","size":17,"color":"#000FB3","bold":true},
+        {"kind":"text","x":325,"y":315,"w":530,"h":35,"text":"外部接続の出口／意図しない破棄を確認","size":17,"color":"#202020"},
+        {"kind":"rect","x":92,"y":385,"w":775,"h":52,"fill":"#EAF3FF","line":"#0078D4"},
+        {"kind":"text","x":108,"y":397,"w":743,"h":30,"text":"次ホップが正しくても、転送・許可・復路・アプリ応答は別に検証","size":17,"color":"#000FB3","bold":true,"align":"center"}
+      ]
+    },
+    {
+      "title": "VNetピアリングは推移的な接続ではない",
+      "notes": "通常のVNetピアリングでは、Hubと各Spokeを接続してもHubが自動でSpoke間パケットを中継するわけではありません。Spoke間の直接通信なら直接ピアリング、検査が必要ならHubのFirewall/NVAと往復UDR、多拠点集約ならVirtual WANなど、要件に合わせて選びます。",
+      "sources": [
+        {"label":"Microsoft Learn: VNet ピアリング","url":"https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-network-peering-overview"}
+      ],
+      "elements": [
+        {"kind":"rect","x":65,"y":180,"w":210,"h":86,"fill":"#EAF3FF","line":"#0078D4"},
+        {"kind":"text","x":78,"y":198,"w":184,"h":28,"text":"Spoke 1","size":20,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"rect","x":375,"y":150,"w":210,"h":120,"fill":"#F3F2F1","line":"#808080"},
+        {"kind":"text","x":390,"y":170,"w":180,"h":28,"text":"Hub","size":20,"color":"#202020","bold":true,"align":"center"},
+        {"kind":"text","x":390,"y":207,"w":180,"h":35,"text":"共有機能","size":16,"color":"#404040","align":"center"},
+        {"kind":"rect","x":685,"y":180,"w":210,"h":86,"fill":"#EAF3FF","line":"#0078D4"},
+        {"kind":"text","x":698,"y":198,"w":184,"h":28,"text":"Spoke 2","size":20,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"line","x1":275,"y1":210,"x2":375,"y2":210,"color":"#0078D4","width":3},
+        {"kind":"line","x1":585,"y1":210,"x2":685,"y2":210,"color":"#0078D4","width":3},
+        {"kind":"line","x1":275,"y1":315,"x2":685,"y2":315,"color":"#C00000","width":2},
+        {"kind":"text","x":340,"y":321,"w":280,"h":27,"text":"直接経路は自動で作られない","size":15,"color":"#C00000","bold":true,"align":"center"},
+        {"kind":"text","x":80,"y":385,"w":805,"h":48,"text":"Spoke間通信：直接ピアリング　／　検査経路：Firewall/NVA + UDR　／　多拠点：Virtual WANなど","size":16,"color":"#000FB3","bold":true,"align":"center"}
+      ]
+    },
+    {
+      "title": "検査経路は往路・復路の両方を設計する",
+      "notes": "Spoke 1からSpoke 2への通信をFirewall/NVAで検査する例です。各Spokeの送信元サブネットに相手プレフィックス向けUDRを設定し、HubからSpokeへ転送できるピアリング設定、アプライアンスの転送、NSG/Firewallの許可も確認します。SNATを使う場合は宛先から見える送信元と復路が変わるため別設計です。",
+      "sources": [
+        {"label":"Microsoft Learn: Hub-Spoke トポロジ","url":"https://learn.microsoft.com/ja-jp/azure/architecture/networking/architecture/hub-spoke"},
+        {"label":"Microsoft Learn: カスタムルート","url":"https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-networks-udr-overview#custom-routes"}
+      ],
+      "elements": [
+        {"kind":"rect","x":55,"y":190,"w":185,"h":92,"fill":"#EAF3FF","line":"#0078D4"},
+        {"kind":"text","x":70,"y":207,"w":155,"h":28,"text":"Spoke 1","size":20,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"text","x":70,"y":241,"w":155,"h":25,"text":"VM 1","size":16,"color":"#202020","align":"center"},
+        {"kind":"rect","x":382,"y":177,"w":196,"h":118,"fill":"#FFF4CE","line":"#F7630C"},
+        {"kind":"text","x":397,"y":194,"w":166,"h":30,"text":"Firewall / NVA","size":19,"color":"#202020","bold":true,"align":"center"},
+        {"kind":"text","x":397,"y":234,"w":166,"h":38,"text":"転送・検査・ログ","size":15,"color":"#404040","align":"center"},
+        {"kind":"rect","x":720,"y":190,"w":185,"h":92,"fill":"#EAF3FF","line":"#0078D4"},
+        {"kind":"text","x":735,"y":207,"w":155,"h":28,"text":"Spoke 2","size":20,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"text","x":735,"y":241,"w":155,"h":25,"text":"VM 2","size":16,"color":"#202020","align":"center"},
+        {"kind":"arrow","x1":240,"y1":207,"x2":382,"y2":207,"color":"#0078D4","width":3},
+        {"kind":"arrow","x1":578,"y1":207,"x2":720,"y2":207,"color":"#0078D4","width":3},
+        {"kind":"arrow","x1":720,"y1":262,"x2":578,"y2":262,"color":"#5C2D91","width":3},
+        {"kind":"arrow","x1":382,"y1":262,"x2":240,"y2":262,"color":"#5C2D91","width":3},
+        {"kind":"text","x":72,"y":340,"w":820,"h":44,"text":"往路UDR：10.2.0.0/16 → Firewall　｜　復路UDR：10.1.0.0/16 → Firewall","size":16,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"text","x":80,"y":398,"w":800,"h":34,"text":"経路・ピアリング転送許可・NVA転送・通信規則を別々に確認","size":17,"color":"#202020","align":"center"}
+      ]
+    },
+    {
+      "title": "インターネット出口は経路・SNAT・許可で考える",
+      "notes": "0.0.0.0/0のUDRは、より具体的な宛先経路がない通信をFirewall/NVAへ誘導します。外部通信には出口のSNATや許可規則が必要です。検査が不要で送信元IP固定などが目的ならNAT Gatewayも選択肢ですが、NAT GatewayはFirewallのような通信検査を行いません。2026年3月31日以降にリリースされたAPIでは新規VNetのサブネットが既定でプライベートとなるため、暗黙の送信アクセスに依存しない設計が必要です。",
+      "sources": [
+        {"label":"Microsoft Learn: 既定の送信アクセス","url":"https://learn.microsoft.com/ja-jp/azure/virtual-network/ip-services/default-outbound-access"}
+      ],
+      "elements": [
+        {"kind":"text","x":65,"y":135,"w":230,"h":35,"text":"1  経路","size":21,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"text","x":65,"y":190,"w":230,"h":68,"text":"0.0.0.0/0\\n→ FirewallのIP","size":18,"color":"#202020","align":"center"},
+        {"kind":"arrow","x1":305,"y1":215,"x2":365,"y2":215,"color":"#0078D4","width":2},
+        {"kind":"text","x":375,"y":135,"w":230,"h":35,"text":"2  出口","size":21,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"text","x":375,"y":190,"w":230,"h":68,"text":"FirewallのSNAT\\nまたはNAT Gateway","size":18,"color":"#202020","align":"center"},
+        {"kind":"arrow","x1":615,"y1":215,"x2":675,"y2":215,"color":"#0078D4","width":2},
+        {"kind":"text","x":685,"y":135,"w":220,"h":35,"text":"3  許可","size":21,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"text","x":685,"y":190,"w":220,"h":68,"text":"Firewall規則\\nNSG / OS / アプリ","size":18,"color":"#202020","align":"center"},
+        {"kind":"rect","x":100,"y":320,"w":760,"h":74,"fill":"#FFF4CE","line":"#F7630C"},
+        {"kind":"text","x":120,"y":334,"w":720,"h":48,"text":"Internetへのルートがあるだけでは、外部接続は保証されない","size":20,"color":"#202020","bold":true,"align":"center"}
+      ]
+    },
+    {
+      "title": "ゲートウェイ共有・Virtual WAN・Route Server",
+      "notes": "VNetピアリングでHubのゲートウェイをSpokeに共有する場合、Hub側のAllow gateway transitとSpoke側のUse remote gatewaysを対応させます。これはFirewall検査や一般的な推移転送を有効にする設定ではありません。Virtual WANは接続をマネージドハブで集約するサービス、Azure Route ServerはAzureとNVAの間でBGP経路交換を行うサービスで、Route Server自体はデータパケットを中継・検査しません。",
+      "sources": [
+        {"label":"Microsoft Learn: VPN Gateway Transit","url":"https://learn.microsoft.com/ja-jp/azure/vpn-gateway/vpn-gateway-peering-gateway-transit"},
+        {"label":"Microsoft Learn: Azure Route Server","url":"https://learn.microsoft.com/ja-jp/azure/route-server/overview"}
+      ],
+      "elements": [
+        {"kind":"text","x":70,"y":130,"w":250,"h":34,"text":"Gateway Transit","size":20,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"text","x":70,"y":177,"w":250,"h":78,"text":"Hub：Allow gateway transit\\nSpoke：Use remote gateways","size":16,"color":"#202020","align":"center"},
+        {"kind":"line","x1":345,"y1":125,"x2":345,"y2":280,"color":"#BFBFBF","width":1.2},
+        {"kind":"text","x":375,"y":130,"w":250,"h":34,"text":"Virtual WAN","size":20,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"text","x":375,"y":177,"w":250,"h":78,"text":"多拠点の接続を\\nマネージドハブで集約","size":16,"color":"#202020","align":"center"},
+        {"kind":"line","x1":650,"y1":125,"x2":650,"y2":280,"color":"#BFBFBF","width":1.2},
+        {"kind":"text","x":680,"y":130,"w":225,"h":34,"text":"Route Server","size":20,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"text","x":680,"y":177,"w":225,"h":78,"text":"AzureとNVA間で\\nBGP経路を交換","size":16,"color":"#202020","align":"center"},
+        {"kind":"rect","x":125,"y":330,"w":710,"h":62,"fill":"#EAF3FF","line":"#0078D4"},
+        {"kind":"text","x":145,"y":343,"w":670,"h":38,"text":"経路交換・接続集約・通信検査は、それぞれ別の役割","size":19,"color":"#000FB3","bold":true,"align":"center"}
+      ]
+    },
+    {
+      "title": "障害切り分けは通信条件を固定して始める",
+      "notes": "最初に発生時刻とタイムゾーン、送信元・宛先IP、FQDN、プロトコル、宛先ポート、実際の送信元ポート、期待経路、現象を記録します。DNS、経路、通信許可、転送と復路、アプリケーションの順に調査します。DNS解決先が異なる場合はDNSを先に調べます。変更は一度に複数行わず、新しい接続で再現性を確認します。",
+      "sources": [
+        {"label":"Microsoft Learn: 接続トラブルシューティング","url":"https://learn.microsoft.com/ja-jp/azure/network-watcher/connection-troubleshoot-overview"}
+      ],
+      "elements": [
+        {"kind":"text","x":70,"y":120,"w":270,"h":32,"text":"試験条件を記録","size":20,"color":"#000FB3","bold":true},
+        {"kind":"text","x":70,"y":165,"w":300,"h":160,"text":"時刻・タイムゾーン\\n送信元 / 宛先 / FQDN\\nプロトコル・ポート\\n期待経路・現象","size":18,"color":"#202020"},
+        {"kind":"line","x1":395,"y1":125,"x2":395,"y2":395,"color":"#BFBFBF","width":1.2},
+        {"kind":"text","x":435,"y":120,"w":440,"h":32,"text":"調査の順序","size":20,"color":"#000FB3","bold":true},
+        {"kind":"text","x":435,"y":165,"w":420,"h":44,"text":"1  DNS → 解決IPが想定どおりか","size":17,"color":"#202020"},
+        {"kind":"text","x":435,"y":212,"w":420,"h":44,"text":"2  経路 → NICの有効ルート / Next hop","size":17,"color":"#202020"},
+        {"kind":"text","x":435,"y":259,"w":420,"h":44,"text":"3  許可 → NSG / Firewall / OS","size":17,"color":"#202020"},
+        {"kind":"text","x":435,"y":306,"w":420,"h":44,"text":"4  転送・復路 → 要求と応答を追う","size":17,"color":"#202020"},
+        {"kind":"text","x":435,"y":353,"w":420,"h":44,"text":"5  アプリ → 待ち受け / TLS / 認証","size":17,"color":"#202020"}
+      ]
+    },
+    {
+      "title": "Network Watcherの機能は問いに合わせて選ぶ",
+      "notes": "Next hopは指定宛先へのAzureの次ホップを確認し、IP flow verifyは指定条件に対するNSG評価を返します。Connection troubleshootは接続全体の診断の兆候を調べ、Topologyは構成上の接続を示します。Packet captureはVMで観測したパケットを確認します。各結果は対象層が異なり、単独でエンドツーエンドの成功を証明しません。機能ごとのリージョン、権限、OS、拡張機能などの要件も確認してください。",
+      "sources": [
+        {"label":"Microsoft Learn: Network Watcher","url":"https://learn.microsoft.com/ja-jp/azure/network-watcher/network-watcher-overview"},
+        {"label":"Microsoft Learn: IP flow verify","url":"https://learn.microsoft.com/ja-jp/azure/network-watcher/ip-flow-verify-overview"}
+      ],
+      "elements": [
+        {"kind":"text","x":68,"y":120,"w":250,"h":30,"text":"機能","size":16,"color":"#606060","bold":true},
+        {"kind":"text","x":335,"y":120,"w":295,"h":30,"text":"答える問い","size":16,"color":"#606060","bold":true},
+        {"kind":"text","x":660,"y":120,"w":240,"h":30,"text":"単独では分からない","size":16,"color":"#606060","bold":true},
+        {"kind":"line","x1":65,"y1":152,"x2":900,"y2":152,"color":"#808080","width":1.2},
+        {"kind":"text","x":68,"y":164,"w":250,"h":34,"text":"Next hop","size":17,"color":"#000FB3","bold":true},
+        {"kind":"text","x":335,"y":164,"w":295,"h":34,"text":"この宛先への次ホップは？","size":16,"color":"#202020"},
+        {"kind":"text","x":660,"y":164,"w":240,"h":34,"text":"転送・復路・TCP成功","size":15,"color":"#404040"},
+        {"kind":"line","x1":65,"y1":204,"x2":900,"y2":204,"color":"#D0D0D0","width":0.8},
+        {"kind":"text","x":68,"y":214,"w":250,"h":34,"text":"IP flow verify","size":17,"color":"#000FB3","bold":true},
+        {"kind":"text","x":335,"y":214,"w":295,"h":34,"text":"この条件をNSGが許可？","size":16,"color":"#202020"},
+        {"kind":"text","x":660,"y":214,"w":240,"h":34,"text":"Firewall / OS / アプリ","size":15,"color":"#404040"},
+        {"kind":"line","x1":65,"y1":254,"x2":900,"y2":254,"color":"#D0D0D0","width":0.8},
+        {"kind":"text","x":68,"y":264,"w":250,"h":34,"text":"Connection troubleshoot","size":16,"color":"#000FB3","bold":true},
+        {"kind":"text","x":335,"y":264,"w":295,"h":34,"text":"接続の問題兆候は？","size":16,"color":"#202020"},
+        {"kind":"text","x":660,"y":264,"w":240,"h":34,"text":"継続的な正常性","size":15,"color":"#404040"},
+        {"kind":"line","x1":65,"y1":304,"x2":900,"y2":304,"color":"#D0D0D0","width":0.8},
+        {"kind":"text","x":68,"y":314,"w":250,"h":34,"text":"Topology / Packet capture","size":16,"color":"#000FB3","bold":true},
+        {"kind":"text","x":335,"y":314,"w":295,"h":34,"text":"構成 / 実パケットは？","size":16,"color":"#202020"},
+        {"kind":"text","x":660,"y":314,"w":240,"h":34,"text":"全地点の到達性","size":15,"color":"#404040"},
+        {"kind":"rect","x":105,"y":380,"w":750,"h":52,"fill":"#FFF4CE","line":"#F7630C"},
+        {"kind":"text","x":125,"y":391,"w":710,"h":30,"text":"正常な結果を、別の層の正常証明にしない","size":18,"color":"#202020","bold":true,"align":"center"}
+      ]
+    },
+    {
+      "title": "有効なルートはVMのNICで確かめる",
+      "notes": "ルートテーブルの設定が正しくても、別のサブネットに関連付けられている可能性があります。VMの実際のNICと所属サブネットを確認し、宛先IPに一致するプレフィックス、由来、状態、次ホップ、より具体的な経路の有無を調べます。往路はVM 1、復路はVM 2のNICで別々に確認します。有効ルートはAzure側の適用結果であり、ゲストOSの経路やNVA転送は別途確認します。",
+      "sources": [
+        {"label":"Microsoft Learn: ルーティング問題の診断","url":"https://learn.microsoft.com/ja-jp/azure/virtual-network/diagnose-network-routing-problem"},
+        {"label":"Microsoft Learn: Next hop","url":"https://learn.microsoft.com/ja-jp/azure/network-watcher/network-watcher-next-hop-overview"}
+      ],
+      "elements": [
+        {"kind":"text","x":72,"y":130,"w":360,"h":36,"text":"往路：VM 1 → VM 2","size":21,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"rect","x":78,"y":185,"w":340,"h":92,"fill":"#EAF3FF","line":"#0078D4"},
+        {"kind":"text","x":95,"y":204,"w":306,"h":32,"text":"10.2.0.0/16 → VirtualAppliance","size":17,"color":"#202020","bold":true,"align":"center"},
+        {"kind":"text","x":95,"y":241,"w":306,"h":25,"text":"Next hop: 10.0.1.4","size":16,"color":"#000FB3","align":"center"},
+        {"kind":"text","x":528,"y":130,"w":360,"h":36,"text":"復路：VM 2 → VM 1","size":21,"color":"#5C2D91","bold":true,"align":"center"},
+        {"kind":"rect","x":538,"y":185,"w":340,"h":92,"fill":"#F3EEF8","line":"#5C2D91"},
+        {"kind":"text","x":555,"y":204,"w":306,"h":32,"text":"10.1.0.0/16 → VirtualAppliance","size":17,"color":"#202020","bold":true,"align":"center"},
+        {"kind":"text","x":555,"y":241,"w":306,"h":25,"text":"Next hop: 10.0.1.4","size":16,"color":"#5C2D91","align":"center"},
+        {"kind":"line","x1":480,"y1":170,"x2":480,"y2":340,"color":"#BFBFBF","width":1.2},
+        {"kind":"text","x":105,"y":340,"w":760,"h":52,"text":"有効ルート = Azure側の適用結果。NVA・OS・宛先アプリの状態は別確認","size":18,"color":"#202020","bold":true,"align":"center"}
+      ]
+    },
+    {
+      "title": "よくある失敗は設定・転送・復路に分ける",
+      "notes": "代表的な失敗は、UDRの関連付け漏れ、0.0.0.0/0より具体的な経路が選ばれること、Hub-Spokeピアリングの非推移性、NVAのAzure NICとOS/製品側でIP転送設定がそろわないこと、往路だけFirewallを通し復路を設計しないことです。症状だけで原因を断定せず、有効ルート、Next hop、ログ、パケット観測を使って確認します。",
+      "sources": [
+        {"label":"Microsoft Learn: VNet ピアリング","url":"https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-network-peering-overview"},
+        {"label":"Microsoft Learn: カスタムルート","url":"https://learn.microsoft.com/ja-jp/azure/virtual-network/virtual-networks-udr-overview#custom-routes"}
+      ],
+      "elements": [
+        {"kind":"text","x":70,"y":125,"w":360,"h":32,"text":"設定・適用","size":20,"color":"#000FB3","bold":true},
+        {"kind":"text","x":75,"y":170,"w":360,"h":92,"text":"UDRを作成したが未関連付け\\n送信元ではなく宛先側に設定\\nより具体的な経路を見落とす","size":16,"color":"#202020"},
+        {"kind":"line","x1":480,"y1":125,"x2":480,"y2":295,"color":"#BFBFBF","width":1.2},
+        {"kind":"text","x":520,"y":125,"w":360,"h":32,"text":"転送・復路","size":20,"color":"#000FB3","bold":true},
+        {"kind":"text","x":525,"y":170,"w":355,"h":92,"text":"Hubのピアリングを推移的と誤認\\nNVAのOS側転送が無効\\n往路だけFirewallへ誘導","size":16,"color":"#202020"},
+        {"kind":"rect","x":95,"y":315,"w":770,"h":66,"fill":"#FFF4CE","line":"#F7630C"},
+        {"kind":"text","x":115,"y":328,"w":730,"h":40,"text":"証拠：NICの有効ルート → Next hop → 装置ログ → 復路","size":17,"color":"#202020","bold":true,"align":"center"}
+      ]
+    },
+    {
+      "title": "ログは種類・対象・有効化時点を確認する",
+      "notes": "VNet flow logsはVNetを流れる通信のフロー情報、Firewall/NVAログは規則や転送・変換、OS/アプリケーションログは待ち受けやTLS/認証などを確認します。フローログはパケット本文やアプリ処理結果を記録するものではありません。ログが有効化されていなかった過去にさかのぼって取得できず、未記録は通信がなかった証拠とは限りません。NSG flow logsは2025年6月30日以降新規作成できず、2027年9月30日に廃止予定です。",
+      "sources": [
+        {"label":"Microsoft Learn: VNet flow logs","url":"https://learn.microsoft.com/ja-jp/azure/network-watcher/vnet-flow-logs-overview"},
+        {"label":"Microsoft Learn: NSG flow logs の廃止","url":"https://learn.microsoft.com/ja-jp/azure/network-watcher/nsg-flow-logs-overview"}
+      ],
+      "elements": [
+        {"kind":"text","x":70,"y":125,"w":240,"h":32,"text":"VNet flow logs","size":19,"color":"#000FB3","bold":true},
+        {"kind":"text","x":70,"y":164,"w":240,"h":63,"text":"IP・ポート・方向\\nフローの傾向","size":16,"color":"#202020"},
+        {"kind":"text","x":360,"y":125,"w":260,"h":32,"text":"Firewall / NVA","size":19,"color":"#000FB3","bold":true},
+        {"kind":"text","x":360,"y":164,"w":260,"h":63,"text":"規則・転送・変換\\n許可 / 拒否の記録","size":16,"color":"#202020"},
+        {"kind":"text","x":675,"y":125,"w":225,"h":32,"text":"OS / アプリ","size":19,"color":"#000FB3","bold":true},
+        {"kind":"text","x":675,"y":164,"w":225,"h":63,"text":"待ち受け・TLS\\n認証・応答","size":16,"color":"#202020"},
+        {"kind":"line","x1":325,"y1":125,"x2":325,"y2":255,"color":"#BFBFBF","width":1},
+        {"kind":"line","x1":645,"y1":125,"x2":645,"y2":255,"color":"#BFBFBF","width":1},
+        {"kind":"rect","x":90,"y":295,"w":780,"h":100,"fill":"#FFF4CE","line":"#F7630C"},
+        {"kind":"text","x":108,"y":309,"w":744,"h":68,"text":"NSG flow logs：2025/6/30以降、新規作成不可\\n2027/9/30廃止予定 → 新規環境はVNet flow logsを検討","size":17,"color":"#202020","bold":true,"align":"center"}
+      ]
+    },
+    {
+      "title": "AIは仮説整理に使い、事実は実測で確かめる",
+      "notes": "AIには発生時刻、送信元、宛先、ポート、期待経路、変更履歴を与え、DNS・経路・許可・転送・復路・アプリケーションに原因候補を分類させます。各仮説の確認方法と、確認で分かることも求めます。機密情報を含めず、設定変更を実行する前に対象・権限・影響・切り戻しを確認します。AIの提案とAzureから取得した証拠を区別して記録します。",
+      "sources": [
+        {"label":"Microsoft Learn: Copilot in Azure とネットワーク","url":"https://learn.microsoft.com/ja-jp/azure/copilot/copilot-networking"}
+      ],
+      "elements": [
+        {"kind":"text","x":80,"y":135,"w":220,"h":34,"text":"入力する事実","size":20,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"text","x":80,"y":185,"w":220,"h":90,"text":"送信元・宛先\\nポート・期待経路\\n発生時刻・変更履歴","size":17,"color":"#202020","align":"center"},
+        {"kind":"arrow","x1":310,"y1":225,"x2":385,"y2":225,"color":"#0078D4","width":2},
+        {"kind":"text","x":395,"y":135,"w":220,"h":34,"text":"AIの支援","size":20,"color":"#5C2D91","bold":true,"align":"center"},
+        {"kind":"text","x":395,"y":185,"w":220,"h":90,"text":"仮説を層別に整理\\n確認順と診断案を提示\\n事実と推測を分ける","size":17,"color":"#202020","align":"center"},
+        {"kind":"arrow","x1":625,"y1":225,"x2":700,"y2":225,"color":"#0078D4","width":2},
+        {"kind":"text","x":710,"y":135,"w":190,"h":34,"text":"人が検証","size":20,"color":"#107C10","bold":true,"align":"center"},
+        {"kind":"text","x":710,"y":185,"w":190,"h":90,"text":"有効ルート・ログ\\n診断結果・公式仕様","size":17,"color":"#202020","align":"center"},
+        {"kind":"rect","x":100,"y":330,"w":760,"h":68,"fill":"#F3EEF8","line":"#5C2D91"},
+        {"kind":"text","x":120,"y":344,"w":720,"h":40,"text":"資格情報・個人情報・組織の機密情報を入力しない","size":18,"color":"#5C2D91","bold":true,"align":"center"}
+      ]
+    },
+    {
+      "title": "変更前後を設計値・設定値・確認結果で残す",
+      "notes": "理解度確認として、(1) 0.0.0.0/0のUDRと10.2.0.0/16のピアリングルートがあるとき、10.2.1.4に選ばれる経路はどちらか、(2) Next hopが想定どおりなのにTCP接続できないとき、次に何を調べるか、(3) IP flow verifyのAllowが証明する範囲は何か、を問いかけます。答えは(1)より具体的な/16、(2)転送・許可・復路・アプリ、(3)NSGの評価でありFirewallや接続全体ではありません。最後に設計値、設定値、確認結果をそろえ、必要なら切り戻します。",
+      "sources": [],
+      "elements": [
+        {"kind":"text","x":80,"y":130,"w":245,"h":34,"text":"設計値","size":21,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"text","x":80,"y":180,"w":245,"h":90,"text":"送信元・宛先\\nプレフィックス\\n期待する次ホップ","size":17,"color":"#202020","align":"center"},
+        {"kind":"arrow","x1":330,"y1":215,"x2":395,"y2":215,"color":"#0078D4","width":2},
+        {"kind":"text","x":405,"y":130,"w":245,"h":34,"text":"設定値","size":21,"color":"#000FB3","bold":true,"align":"center"},
+        {"kind":"text","x":405,"y":180,"w":245,"h":90,"text":"UDR・関連付け\\nピアリング\\n転送・許可設定","size":17,"color":"#202020","align":"center"},
+        {"kind":"arrow","x1":655,"y1":215,"x2":720,"y2":215,"color":"#0078D4","width":2},
+        {"kind":"text","x":730,"y":130,"w":180,"h":34,"text":"確認結果","size":21,"color":"#107C10","bold":true,"align":"center"},
+        {"kind":"text","x":730,"y":180,"w":180,"h":90,"text":"有効ルート\\nNext hop\\n疎通・ログ","size":17,"color":"#202020","align":"center"},
+        {"kind":"rect","x":105,"y":330,"w":750,"h":66,"fill":"#DFF6DD","line":"#107C10"},
+        {"kind":"text","x":125,"y":344,"w":710,"h":38,"text":"変更は1項目ずつ。影響範囲と切り戻し方法を先に決める。","size":18,"color":"#107C10","bold":true,"align":"center"}
+      ]
+    },
+    {
+      "title": "要点：経路・許可・往復を分けて検証する",
+      "notes": "本日のまとめです。1) 宛先IPに対する最長プレフィックス一致を先に確認し、同一プレフィックスの優先順位と例外を区別する。2) ルートテーブル、サブネットへの関連付け、有効ルートを確認する。3) 往路・復路、通信許可、アプライアンス転送、出口、アプリ応答を別々の証拠で確認する。疑問が残る場合は変更を重ねず、実測値と公式仕様に基づいて次の確認点を決める。",
+      "sources": [],
+      "elements": [
+        {"kind":"circle","x":100,"y":175,"w":66,"h":66,"fill":"#0078D4","line":"#0078D4"},
+        {"kind":"text","x":100,"y":192,"w":66,"h":28,"text":"1","size":22,"color":"#FFFFFF","bold":true,"align":"center"},
+        {"kind":"text","x":185,"y":184,"w":670,"h":40,"text":"宛先プレフィックスを比較する","size":22,"color":"#000FB3","bold":true},
+        {"kind":"circle","x":100,"y":265,"w":66,"h":66,"fill":"#107C10","line":"#107C10"},
+        {"kind":"text","x":100,"y":282,"w":66,"h":28,"text":"2","size":22,"color":"#FFFFFF","bold":true,"align":"center"},
+        {"kind":"text","x":185,"y":274,"w":670,"h":40,"text":"有効ルートとNext hopを確認する","size":22,"color":"#000FB3","bold":true},
+        {"kind":"circle","x":100,"y":355,"w":66,"h":66,"fill":"#5C2D91","line":"#5C2D91"},
+        {"kind":"text","x":100,"y":372,"w":66,"h":28,"text":"3","size":22,"color":"#FFFFFF","bold":true,"align":"center"},
+        {"kind":"text","x":185,"y":364,"w":670,"h":40,"text":"通信許可・転送・往復・アプリを分けて検証する","size":21,"color":"#000FB3","bold":true}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "version": "v1",
+  "designGuide": "template\\design-template.md",
+  "generatorTemplate": "template\\generate-opus.template.js",
+  "rules": {
+    "font": "Yu Gothic UI",
+    "bodyMinimum": 16,
+    "noteMinimum": 12,
+    "sourceMinimum": 10,
+    "sources": "本文番号と同ページ下部の完全URLを対応付ける。URL文字列のみクリック可能。ノートにも完全URLを記録する。",
+    "linkColorAndUnderline": "ガイドで未規定。テンプレートの出典色とPowerPointのハイパーリンク表示を使用する。",
+    "template": "指定フォルダにPPTXはないため、生成テンプレートの寸法・配色・フッターを基準にする。架空のロゴは追加しない。",
+    "overrides": "デザインガイドに従い小さい本文・出典を拡大し、装飾バッジと過剰なカードを使用しない。"
+  },
+  "hashes": {
+    "BCDR\\座学\\スライド\\chapters.json": "3e51013898a73e438b09c73d5845766941e7267397ff1070536da087329e396a",
+    "BCDR\\座学\\00-BCDR座学のゴール.md": "9617c224ec8325e52ce0564a618ce09880705030fedea839971d60cce8075ab9",
+    "BCDR\\座学\\01-DRの目的と基本概念\\01-DRの目的と基本概念.md": "ef8bba2cdaabbb4ec4f7b583d5c8315f37563a90b481cf70d70ddf3ab08f53c5",
+    "BCDR\\座学\\02-RTO-RPOとDRパターン\\02-RTO-RPOとDRパターン.md": "c3addfe9ef0b76b832a1383f340bc7885127be834e4c3a30ab9ea3f6c6668671",
+    "BCDR\\座学\\03-Azureサービス別のDR設計\\03-Azureサービス別のDR設計.md": "c343a17672b6dd0af5f44a7bec67fc6b2dbe48c5a0fc32b7c08f35e6098dbfc6",
+    "BCDR\\座学\\04-マルチリージョン構成と切り替え\\04-マルチリージョン構成と切り替え.md": "71a91371c77404da81a102fe3c2b343265a7195dc55f5dd03a1ecfdf74073e59",
+    "BCDR\\座学\\05-Front-Doorフェールオーバーの仕組み\\05-Front-Doorフェールオーバーの仕組み.md": "7b516ecd9349c9355847c8e6538ffc9a83b43f0e8c97bf7c6471aaef80295b04",
+    "BCDR\\座学\\06-障害注入と復旧運用\\06-障害注入と復旧運用.md": "bdc9eb13449a569019473d17cb4b75baceea8baecc9b1f756363a3682426ea86",
+    "BCDR\\座学\\07-DRチェックリストとまとめ\\07-DRチェックリストとまとめ.md": "57be2d6453de68be946565385b4b60b2d171ce19bd559b93d90e225b67146115"
+  },
+  "results": [
+    {
+      "file": "00-BCDR座学のゴール\\v1\\v1-00-BCDR座学のゴール.pptx",
+      "slides": 3
+    },
+    {
+      "file": "01-DRの目的と基本概念\\v1\\v1-01-DRの目的と基本概念.pptx",
+      "slides": 5
+    },
+    {
+      "file": "02-RTO-RPOとDRパターン\\v1\\v1-02-RTO-RPOとDRパターン.pptx",
+      "slides": 7
+    },
+    {
+      "file": "03-Azureサービス別のDR設計\\v1\\v1-03-Azureサービス別のDR設計.pptx",
+      "slides": 10
+    },
+    {
+      "file": "04-マルチリージョン構成と切り替え\\v1\\v1-04-マルチリージョン構成と切り替え.pptx",
+      "slides": 3
+    },
+    {
+      "file": "05-Front-Doorフェールオーバーの仕組み\\v1\\v1-05-Front-Doorフェールオーバーの仕組み.pptx",
+      "slides": 6
+    },
+    {
+      "file": "06-障害注入と復旧運用\\v1\\v1-06-障害注入と復旧運用.pptx",
+      "slides": 5
+    },
+    {
+      "file": "07-DRチェックリストとまとめ\\v1\\v1-07-DRチェックリストとまとめ.pptx",
+      "slides": 4
+    },
+    {
+      "file": "v1\\v1-Azure-BCDR-座学.pptx",
+      "slides": 44
+    }
+  ]
+}

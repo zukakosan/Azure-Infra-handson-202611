@@ -2,7 +2,7 @@
 
 [全体・進捗チェック](../01-IaaS-ASRによるDRハンズオン.md) | [次へ：ApacheとHTMLの構成](./02-ApacheとHTMLの構成.md)
 
-[初期環境のBicep](../infra/main.bicep)でリソースを作成します。新しい演習IDと専用リソースグループを使用し、既存の手作業環境へ重ねて展開しないでください。
+[初期環境のBicep](./infra/main.bicep)でリソースを作成します。新しい演習IDと専用リソースグループを使用し、既存の手作業環境へ重ねて展開しないでください。
 
 ## 作成するリソース
 
@@ -57,19 +57,19 @@ Test-Path Env:BCDR_ADMIN_PASSWORD
 Remove-Item Env:BCDR_ADMIN_PASSWORD
 ```
 
-[パラメータファイル](../infra/main.bicepparam)の演習ID（参加者共通の乱数）とリージョンを編集します。パスワードは環境変数からsecure parameterとして読み込みます。指定しない場合はパラメータのビルドが失敗します。
+[パラメータファイル](./infra/main.bicepparam)の演習ID（参加者共通の乱数）とリージョンを編集します。パスワードは環境変数からsecure parameterとして読み込みます。指定しない場合はパラメータのビルドが失敗します。
 
 ## 2. ローカルビルドと変更内容の確認
 
 ```powershell
-az bicep build --file '.\BCDR\ハンズオン\infra\main.bicep' --stdout | Out-Null
+az bicep build --file '.\BCDR\ハンズオン\IaaS\infra\main.bicep' --stdout | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'Bicep build failed.' }
 
 az deployment sub what-if `
   --name bcdr-initial `
   --location japaneast `
-  --template-file '.\BCDR\ハンズオン\infra\main.bicep' `
-  --parameters '.\BCDR\ハンズオン\infra\main.bicepparam'
+  --template-file '.\BCDR\ハンズオン\IaaS\infra\main.bicep' `
+  --parameters '.\BCDR\ハンズオン\IaaS\infra\main.bicepparam'
 if ($LASTEXITCODE -ne 0) { throw 'Deployment what-if failed.' }
 ```
 
@@ -83,13 +83,13 @@ if ($LASTEXITCODE -ne 0) { throw 'Deployment what-if failed.' }
 az deployment sub create `
   --name bcdr-initial `
   --location japaneast `
-  --template-file '.\BCDR\ハンズオン\infra\main.bicep' `
-  --parameters '.\BCDR\ハンズオン\infra\main.bicepparam' `
+  --template-file '.\BCDR\ハンズオン\IaaS\infra\main.bicep' `
+  --parameters '.\BCDR\ハンズオン\IaaS\infra\main.bicepparam' `
   --query properties.outputs --output json
 if ($LASTEXITCODE -ne 0) { throw 'Deployment failed. Inspect deployment operations before retrying.' }
 ```
 
-出力された3つのRG名、VM ID、公開IP、各Bastion ID、サブネットID、コンテナーIDと、`sourceCacheStorageAccountName`・`recoveryCacheStorageAccountName`を観測シートに控えます。キャッシュストレージは前者がRegion A、後者がRegion Bです。`sourcePageUrl`はApache設定後に利用するURLであり、展開直後はWeb応答しません。`sourceVmPortalUrl`を開き、**接続 → Bastion** で`azureuser`と入力したパスワードを使用します。詳しくは[Portal手順の1.4](./01-ネットワークとVMの作成.md)を参照します。公開IPへSSH接続はしません。
+出力された3つのRG名、VM ID、公開IP、各Bastion ID、サブネットID、コンテナーIDと、`sourceCacheStorageAccountName`・`recoveryCacheStorageAccountName`を手元の任意のメモに控えます。キャッシュストレージは前者がRegion A、後者がRegion Bです。`sourcePageUrl`はApache設定後に利用するURLであり、展開直後はWeb応答しません。`sourceVmPortalUrl`を開き、**接続 → Bastion** で`azureuser`と入力したパスワードを使用します。詳しくは[Portal手順の1.4](./01-ネットワークとVMの作成.md)を参照します。公開IPへSSH接続はしません。
 
 ## 4. ハンズオンへ戻る
 

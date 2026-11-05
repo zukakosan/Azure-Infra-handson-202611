@@ -2,7 +2,7 @@
 
 [前へ](./01-ネットワークとVMの作成.md) | [全体・進捗チェック](../01-IaaS-ASRによるDRハンズオン.md) | [次へ](./03-ASRの構成と初期複製.md)
 
-> 現在位置：2 / 9。このページの到達点：Webページが表示され、演習IDとメッセージを確認できる。
+> 現在位置：2 / 9。このページの到達点：Webページが表示され、演習用のHTMLマーカーを確認できる。
 
 [前のページ](./01-ネットワークとVMの作成.md)の完了条件を満たしてから進んでください。
 
@@ -42,8 +42,9 @@ curl --fail --silent --show-error --connect-timeout 5 --max-time 15 -o /dev/null
 
 1. `vi /tmp/index.html` を実行します。一時ファイルを使うため、編集中に既定ページを壊しません。
 2. `i` キーで挿入モードにし、以下のHTML全体を貼り付けます。
-3. `YOUR_EXERCISE_ID`を自分の演習IDに置き換えます。今回の環境では演習IDは`a7k3p9`です。
-4. `Esc` キーを押し、`:wq` と入力してEnterを押し、保存して終了します。
+3. `Esc` キーを押し、`:wq` と入力してEnterを押し、保存して終了します。
+
+HTMLはそのまま貼り付ければよく、演習IDの入力は不要です。タイトルと`apache-html-ready`のマーカーで、Apacheの既定ページではなく今回配置した演習用ページであることを確認します。
 
 ```html
 <!doctype html>
@@ -55,7 +56,6 @@ curl --fail --silent --show-error --connect-timeout 5 --max-time 15 -o /dev/null
 </head>
 <body>
   <h1>ASR Web Recovery Exercise</h1>
-  <p>Exercise ID: YOUR_EXERCISE_ID</p>
   <p>Recovery marker: apache-html-ready</p>
 </body>
 </html>
@@ -75,7 +75,7 @@ sync
 date -u +%Y-%m-%dT%H:%M:%SZ
 ```
 
-演習ID、メッセージ、表示されたUTC時刻を**VM外の観測シート**に記録します。UTC時刻はASRの復旧ポイントがHTML更新を含むか確認するために使います。`sync`はOS内の書き込みを反映させる操作であり、ASRの複製完了を保証するものではありません。`vi`の保存に失敗した場合は、成功扱いにせずエラーを確認します。内容に誤りがあれば、一時ファイルを修正してから配置します。
+HTMLマーカーと表示されたUTC時刻を**VM外の観測シート**に記録します。UTC時刻はASRの復旧ポイントがHTML更新を含むか確認するために使います。`sync`はOS内の書き込みを反映させる操作であり、ASRの複製完了を保証するものではありません。`vi`の保存に失敗した場合は、成功扱いにせずエラーを確認します。内容に誤りがあれば、一時ファイルを修正してから配置します。
 
 ローカルHTTPで配置した内容が返ることを確認します。
 
@@ -85,12 +85,12 @@ curl --fail --silent --show-error --connect-timeout 5 --max-time 15 http://127.0
 
 続いて、配布された接続経路の端末・ブラウザーで`http://<元のVMへ到達できるIPまたはホスト名>/`を開きます。`127.0.0.1`は実行している端末自身を指すため、参加者のPCで元VMのアドレスとして使いません。
 
-**確認結果**：演習IDと`apache-html-ready`がローカルHTTPとブラウザーの両方で表示されること。既定の「Apache2 Ubuntu Default Page」が残っている場合は、配置先とキャッシュを確認します。
+**確認結果**：`ASR Web Recovery Exercise`と`apache-html-ready`がローカルHTTPとブラウザーの両方で表示されること。既定の「Apache2 Ubuntu Default Page」が残っている場合は、配置先とキャッシュを確認します。
 
 ## このページの完了チェック
 
 - [ ] Apacheのインストールと自動起動設定を完了した。
-- [ ] HTMLの表示を確認し、演習IDとメッセージを記録した。
+- [ ] HTMLの表示を確認し、HTMLマーカーと時刻を記録した。
 
 完了したら[全体ページ](../01-IaaS-ASRによるDRハンズオン.md)の対応するチェックを更新します。未完了の場合は進捗メモに停止箇所と理由を残してください。
 

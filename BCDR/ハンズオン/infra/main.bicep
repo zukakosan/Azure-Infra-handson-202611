@@ -113,6 +113,30 @@ module recoveryVault './modules/vault.bicep' = {
   }
 }
 
+module sourceCache './modules/cache-storage.bicep' = {
+  name: 'bcdr-source-cache-${exerciseId}'
+  scope: sourceGroup
+  params: {
+    location: sourceLocation
+    role: 'src'
+    tags: tags
+  }
+}
+
+module recoveryCache './modules/cache-storage.bicep' = {
+  name: 'bcdr-dr-cache-${exerciseId}'
+  scope: recoveryGroup
+  params: {
+    location: recoveryLocation
+    role: 'dr'
+    tags: tags
+  }
+}
+
+output sourceCacheStorageAccountId string = sourceCache.outputs.storageAccountId
+output sourceCacheStorageAccountName string = sourceCache.outputs.storageAccountName
+output recoveryCacheStorageAccountId string = recoveryCache.outputs.storageAccountId
+output recoveryCacheStorageAccountName string = recoveryCache.outputs.storageAccountName
 output sourceResourceGroupName string = sourceGroup.name
 output recoveryResourceGroupName string = recoveryGroup.name
 output testResourceGroupName string = testGroup.name

@@ -59,6 +59,22 @@ Remove-Item Env:BCDR_ADMIN_PASSWORD
 
 [パラメータファイル](./infra/main.bicepparam)の演習ID（参加者共通の乱数）とリージョンを編集します。パスワードは環境変数からsecure parameterとして読み込みます。指定しない場合はパラメータのビルドが失敗します。
 
+### クォータ不足時のリージョン切り替え
+
+`sourceLocation`（Region A）と`recoveryLocation`（Region B）は既にパラメータ化されています。[パラメータファイル](./infra/main.bicepparam)と[サンプル](./infra/main-sample.bicepparam)のコメントに、[Azureの公式ペアリージョン](https://learn.microsoft.com/azure/reliability/regions-paired)の候補を記載しています。
+
+| 候補 | `sourceLocation` | `recoveryLocation` |
+|---|---|---|
+| 東日本 / 西日本（既定） | `japaneast` | `japanwest` |
+| 東南アジア / 東アジア | `southeastasia` | `eastasia` |
+| オーストラリア東部 / 南東部 | `australiaeast` | `australiasoutheast` |
+| 北ヨーロッパ / 西ヨーロッパ | `northeurope` | `westeurope` |
+| 米国東部2 / 米国中部 | `eastus2` | `centralus` |
+
+元と復旧先は逆方向でも構いません。切り替える場合は**2つの値をペアで変更**し、両リージョンで[クォータとサービス対応](./00-事前準備と確認ポイント.md#33-両リージョンのクォータとサービス対応)および組織の許可リージョンを確認します。候補は両側が[Bastion Developerの対応リージョン](https://learn.microsoft.com/azure/bastion/bastion-sku-comparison#regional-availability)に含まれる組み合わせですが、VMサイズ・イメージ・ASR対応・クォータ・実際の容量は実行前に再確認が必要です。ペアであることは、クォータや容量の確保を保証しません。
+
+変更は初回作成前に行います。途中で切り替える場合は、[クリーンアップ](./08-クリーンアップ.md)で既存の演習環境を片付け、新しい`exerciseId`で作り直してください。パラメータ変更で作成済みリソースが別リージョンへ移動するわけではありません。以降のPortal手順にある東日本・西日本も、選択したRegion A・Bへ読み替えます。
+
 ## 2. ローカルビルドと変更内容の確認
 
 ```powershell

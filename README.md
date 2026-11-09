@@ -12,7 +12,7 @@ Azureのネットワーク設計・トラブルシューティングと、事業
 | BCDR / IaaS | Azure Site Recovery（ASR）によるVMの複製、フェールオーバー、再保護、フェールバック | [IaaSハンズオン README](./BCDR/ハンズオン/IaaS/README.md) |
 | BCDR / PaaS | Azure SQL DatabaseのFailover Groupによる計画切り替えとデータ確認 | [PaaSハンズオンの全体手順](./BCDR/ハンズオン/02-PaaS-Azure-SQLによるDRハンズオン.md) |
 
-**BCDR / IaaSの参加者は、開催前に[参加者用の事前準備](./BCDR/ハンズオン/IaaS/00-参加者用の事前準備.md)のツール準備とAzureへのログイン確認を済ませてください。** 教材ZIPの取得と初期環境のBicep展開は当日、講師の案内に従って行います。
+**BCDR / IaaSの参加者は、開催前に[参加者用の事前準備](./BCDR/ハンズオン/IaaS/準備/00-参加者用の事前準備.md)のツール準備とAzureへのログイン確認を済ませてください。** 当日は教材を取得し、Bicepで初期環境を展開します。
 
 ## 教材一覧
 

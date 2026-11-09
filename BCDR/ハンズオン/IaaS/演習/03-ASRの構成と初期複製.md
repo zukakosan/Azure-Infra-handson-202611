@@ -1,12 +1,10 @@
 # IaaS 03：ASRの構成と初期複製
 
-[前へ](./02-ApacheとHTMLの構成.md) | [全体・進捗チェック](../01-IaaS-ASRによるDRハンズオン.md) | [次へ](./04-テストフェールオーバーと復旧確認.md)
+[前へ](./02-ApacheとHTMLの構成.md) | [全体・進捗チェック](../../01-IaaS-ASRによるDRハンズオン.md) | [次へ](./04-テストフェールオーバーと復旧確認.md)
 
 > 現在位置：3 / 8。このページの到達点：初期複製が完了し、HTML構成後の復旧ポイントを確認できる。
 
 [前のページ](./02-ApacheとHTMLの構成.md)の完了条件を満たしてから進んでください。
-
-メモは手元のノートなどへ自由に取ってください。困ったときは[トラブルシューティング](./09-よくあるハマりどころとトラブルシューティング.md)を参照します。
 
 ## このページの手順
 
@@ -14,7 +12,7 @@
 
 #### 3.1 作成済みのRecovery Servicesコンテナーを確認する
 
-[Bicepによる初期リソースの作成](./00-Bicepによる初期リソースの作成.md)を完了していることを前提とします。コンテナー・両リージョンのキャッシュストレージは作成済みですが、アクセス権限の付与とASRの複製有効化はBicepに含まれません。
+[Bicepによる初期リソースの作成](../準備/00-Bicepによる初期リソースの作成.md)を完了していることを前提とします。コンテナー・両リージョンのキャッシュストレージは作成済みですが、アクセス権限の付与とASRの複製有効化はBicepに含まれません。
 
 1. Portalで、Bicep出力`recoveryVaultId`に対応するRecovery Servicesコンテナーを開きます。
 2. 名前が`rsv-bcdr-<演習ID>`、所属グループが`rg-bcdr-dr-<演習ID>`、リージョンがRegion Bであることを確認し、次の権限付与へ進みます。
@@ -27,8 +25,8 @@
 
 | 用途 | ストレージアカウント | リソースグループ | リージョン |
 |---|---|---|---|
-| A→Bの複製用 | Bicep出力`sourceCacheStorageAccountName` | `rg-bcdr-src-<演習ID>` | Region A（既定：東日本） |
-| B→Aの再保護用 | Bicep出力`recoveryCacheStorageAccountName` | `rg-bcdr-dr-<演習ID>` | Region B（既定：西日本） |
+| A→Bの複製用 | Bicep出力`sourceCacheStorageAccountName` | `rg-bcdr-src-<演習ID>` | Region A |
+| B→Aの再保護用 | Bicep出力`recoveryCacheStorageAccountName` | `rg-bcdr-dr-<演習ID>` | Region B |
 
 1. Bicep出力`sourceCacheStorageAccountName`（Region Aの元RG）と`recoveryCacheStorageAccountName`（Region BのDR用RG）のストレージを確認します。Bicepで**Standard・LRS・StorageV2**、HTTPSのみ・最小TLS 1.2、匿名Blobアクセス・共有キーアクセス無効として作成済みです。
 2. Recovery Servicesコンテナーの **ID（Identity）** で、**システム割り当て → 状態：オン** を確認します。Bicepで有効化済みのこのIDを、以降の権限付与先にします。
@@ -46,7 +44,7 @@
 
 参考：[ASRで使用するストレージへのアクセス権限（Microsoft Learn）](https://learn.microsoft.com/azure/site-recovery/site-recovery-faq#security)
 
-4. **ロールの割り当て** で対象IDに両方のロールが付いていることを確認し、反映に数分待ちます。ストレージ名・リージョン・付与先IDを記録します。参加者にロール割り当て権限がない場合は管理者へ依頼します。「共同作成者」だけではロール割り当てはできません。
+4. **ロールの割り当て**で2つのロールと付与先を確認し、反映を待ちます。ストレージ名・リージョン・IDを記録します。権限がない場合はサブスクリプション管理者へ割り当てを依頼します。
 
 #### 3.2 Azure VMのレプリケーションを有効にする
 
@@ -66,7 +64,7 @@ Trusted LaunchのLinux VMは、VM作成画面のSite Recovery同時有効化で�
 ![alt text](files/image-8.png)
    - キャッシュストレージの設定を開き、既存ストレージの選択でキャッシュ用のストレージ (Bicep出力`sourceCacheStorageAccountName`と同じ名前) を選びます。
    ![alt text](files/image-9.png)
-   - 所属グループが`rg-bcdr-src-<演習ID>`、リージョンがRegion Aであることを確認し、変更を保存します。Region Bのストレージ   2は後の再保護で使用するため、ここでは選びません。
+   - 所属グループが`rg-bcdr-src-<演習ID>`、リージョンがRegion Aであることを確認し、変更を保存します。Region Bのストレージは再保護用です。
    - 自動提案されたターゲットリージョンやVNetも、そのまま採用せず演習の値に合わせます。
 ![alt text](files/image-5.png)
 
@@ -143,7 +141,7 @@ Trusted LaunchのLinux VMは、VM作成画面のSite Recovery同時有効化で�
 
 **確認結果**：初期複製が完了し、ApacheとHTMLを構成した後の復旧ポイントを選択できること。
 
-この時点では、復旧ポイント内のHTMLそのものは確認できません。実際にページが復旧することは、[次のテストフェールオーバー](./04-テストフェールオーバーと復旧確認.md)で確認します。待機上限を超えたら講師へ連絡します。復旧先でApacheやHTMLを作り直して成功扱いにしません。
+HTMLの復旧は[次のテストフェールオーバー](./04-テストフェールオーバーと復旧確認.md)で確認します。待機上限を超えたら停止して原因を調べます。復旧先でApacheやHTMLを作り直して成功扱いにしません。
 
 ##### 参考：Azure CLIで初期複製の進捗を確認する
 
@@ -171,6 +169,6 @@ if ($LASTEXITCODE -ne 0) { throw 'Replication status lookup failed.' }
 - [ ] 初期複製中にネットワークマッピングの方向と役割、割り当てポリシーの各項目、および複製・復旧ポイント生成の流れを確認した（設定値は変更していない）。
 - [ ] 初期複製が完了し、構成後の復旧ポイントと複製正常性を確認した。
 
-完了したら[全体ページ](../01-IaaS-ASRによるDRハンズオン.md)の対応するチェックを更新します。未完了の場合は進捗メモに停止箇所と理由を残してください。
+完了したら[全体ページ](../../01-IaaS-ASRによるDRハンズオン.md)の対応するチェックを更新します。未完了の場合は進捗メモに停止箇所と理由を残してください。
 
-[前へ](./02-ApacheとHTMLの構成.md) | [全体・進捗チェック](../01-IaaS-ASRによるDRハンズオン.md) | [次へ](./04-テストフェールオーバーと復旧確認.md)
+[前へ](./02-ApacheとHTMLの構成.md) | [全体・進捗チェック](../../01-IaaS-ASRによるDRハンズオン.md) | [次へ](./04-テストフェールオーバーと復旧確認.md)

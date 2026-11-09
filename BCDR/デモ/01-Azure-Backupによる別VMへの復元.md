@@ -110,7 +110,7 @@ ASRの元VM・DR用VNet・コンテナーは使用しない
 
 Bicepでデプロイ済みなら、Custom Script拡張機能がApache・自動起動・正常HTMLを構成しています。インストールとHTMLの再配置は行わず、拡張機能の成功、`enabled`・`active`、ローカルHTTPとブラウザー表示、正常HTMLのSHA-256を確認してVM外に記録します。設定失敗を手動インストールで隠さず、デプロイ操作・拡張機能のエラーを確認します。
 
-既存の[Apache構成手順](../ハンズオン/IaaS/02-ApacheとHTMLの構成.md)と同じApache・自動起動のパターンを使用します。ただし、実行対象はこのデモ専用VMです。
+既存の[Apache構成手順](../ハンズオン/IaaS/演習/02-ApacheとHTMLの構成.md)と同じApache・自動起動のパターンを使用します。ただし、実行対象はこのデモ専用VMです。
 
 ```bash
 sudo apt-get update &&

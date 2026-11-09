@@ -18,9 +18,11 @@
 </p>
 
 3. Region Bの指定された **テスト用VNet** を選択します。元の業務ネットワークは選択しません。
-4. 対象・復旧ポイント・接続先が自分の演習環境であることを確認します。
-5. 実行し、操作開始時刻を記録します。
-6. **Site Recoveryジョブ（Site Recovery jobs）** で進行状況を確認し、ジョブID、各工程、完了または失敗の状態を記録します。
+4. **Site Recoveryジョブ（Site Recovery jobs）** で進行状況を確認し、ジョブID、各工程、完了または失敗の状態を記録します。
+
+<p align="center">
+  <img src="files/image-44.png" alt="alt text" width="800">
+</p>
 
 **確認結果**：テストフェールオーバージョブが成功し、Region Bにテスト用VMが作成されること。
 
@@ -32,13 +34,33 @@
 
 > **学びポイント：元VMのPublic IPは、ASRのフェールオーバーで復旧先へ引き継がれません。VMが復旧しても、元と同じ公開IPでアクセスできるわけではありません。** 本演習では復旧先に別のPublic IPを関連付けて確認します。実運用では、DNSやFront Doorなど、利用者の接続先を切り替える仕組みも別途設計します。
 
-1. Portalでテスト用VMのリージョン、稼働状態、VMサイズ、接続先VNet・IPアドレスを確認します。Trusted Launch、Secure Boot・vTPMの有効状態も元VMと照合します。ブート整合性監視の状態は複製されません。
-   ASRが作成したテストVMのRGは固定と仮定せず、Portalで実際の配置先を記録します。テスト用ネットワーク自体は`rg-bcdr-test-<演習ID>`にあります。
-2. テスト用VMの **ネットワーク設定** から実際のNICを開き、テスト専用VNet・`subnet-web`に接続していることを確認します。
-3. NICの **IP構成** で主IP構成を開き、Region Bの演習専用Standard SKUの公開IPv4を新規作成して関連付けます。元VMの公開IPが自動で引き継がれるとは仮定しません。新規作成の導線がない場合は、Portalの **パブリックIPアドレス → 作成** で作成してから選択します。
-4. テスト用NSGがサブネットに関連付いていることと、NICにもNSGがある場合の実効規則を確認します。[01：Bicepデプロイ結果の確認](./01-verify-deployment.md)にあるSSH許可・拒否とHTTP許可の設定を確認し、公開IPと関連リソース名を記録します。
-5. **テスト用VM**の **接続 → Bastion** から、テスト専用VNetのBastion Developerと`azureuser`・自分で設定した演習専用パスワードで接続します。元VMのセッションを閉じ、接続先VM名とプライベートIPを確認します。公開IPはHTTP確認専用です。
-6. 次のコマンドでApacheとHTMLを確認します。復旧先でインストールやページ配置をやり直しません。
+1. DR用リソースグループを開き、作成されたテストVMを選択します（末尾に -test が付きます）。
+
+<p align="center">
+  <img src="files/image-45.png" alt="alt text" width="800">
+</p>
+
+2. リージョン、稼働状態、VMサイズ、接続先VNet・IPアドレスを確認します。
+3. テスト用VMの **ネットワーク設定** から適用されている NSG 規則を確認します。
+4. 実際のNICを開き、テスト専用VNet・`subnet-web`に接続していることを確認します。
+
+<p align="center">
+  <img src="files/image-46.png" alt="alt text" width="800">
+</p>
+
+5. NICの **IP構成** で主IP構成を開き、Region Bの演習専用Standard SKUの公開IPv4を新規作成して関連付けます。
+
+<p align="center">
+  <img src="files/image-47.png" alt="alt text" width="800">
+</p>
+
+6. **テスト用VM**の **接続 → Bastion** から、テスト専用VNetのBastion Developerと`azureuser`・自分で設定した演習専用パスワードで接続します。
+
+<p align="center">
+  <img src="files/image-48.png" alt="alt text" width="800">
+</p>
+
+7. 次のコマンドでApacheとHTMLを確認します。復旧先でインストールやページ配置は行いません。
 
 ```bash
 systemctl is-enabled apache2 &&
@@ -47,7 +69,7 @@ cat /var/www/html/index.html &&
 curl --fail --silent --show-error --connect-timeout 5 --max-time 15 http://127.0.0.1/
 ```
 
-**確認結果**：Apacheが自動起動し、HTMLマーカーが元の記録と一致すること。
+**確認結果**：Apacheが自動起動し、HTMLマーカー（`ASR Web Recovery Exercise`）が元の記録と一致すること。
 
 ### 5.2 利用者の接続経路から表示を確認する
 

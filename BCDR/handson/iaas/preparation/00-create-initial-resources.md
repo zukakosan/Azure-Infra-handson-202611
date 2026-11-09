@@ -1,6 +1,6 @@
 # Bicepによる初期リソースの作成
 
-[事前準備と確認ポイント](./00-事前準備と確認ポイント.md) | [全体・進捗チェック](../../01-IaaS-ASRによるDRハンズオン.md) | [次へ：ApacheとHTMLの構成](../演習/02-ApacheとHTMLの構成.md)
+[事前準備と確認ポイント](./00-prerequisites.md) | [全体・進捗チェック](../../../ハンズオン/01-IaaS-ASRによるDRハンズオン.md) | [次へ：ApacheとHTMLの構成](../exercises/02-configure-apache.md)
 
 この手順では、Bicepでハンズオンの初期環境を作成します。まず図で作成範囲を確認し、パラメータファイルの値を設定してデプロイします。既存の手作業環境には展開せず、新しい演習IDを使ってください。
 
@@ -48,7 +48,7 @@ flowchart LR
 
 ASRの複製を有効にする操作は後続手順で行います。ASRのテストVM・復旧VMもこのデプロイでは作成されません。テスト用のリソースグループとネットワークだけを先に用意します。
 
-## 1. どこに何を書くか
+## 1. Bicep のパラメータ編集
 
 編集するのは[infra/main.bicepparam](./infra/main.bicepparam)です。このファイルを開き、演習IDとリージョンを設定します。`exerciseId`の初期値`WRITE-YOUR-EXCERCISE-ID`はプレースホルダーなので、そのまま使わず、自分用の値に置き換えてください。
 
@@ -96,13 +96,13 @@ $env:BCDR_ADMIN_PASSWORD = '<演習専用パスワード>'
 ## 3. ビルドして変更内容を確認する
 
 ```powershell
-az bicep build --file '.\BCDR\ハンズオン\IaaS\準備\infra\main.bicep' --stdout | Out-Null
+az bicep build --file '.\BCDR\handson\iaas\preparation\infra\main.bicep' --stdout | Out-Null
 
 az deployment sub what-if `
   --name bcdr-initial `
   --location '<デプロイ履歴の保存先リージョン>' `
-  --template-file '.\BCDR\ハンズオン\IaaS\準備\infra\main.bicep' `
-  --parameters '.\BCDR\ハンズオン\IaaS\準備\infra\main.bicepparam'
+  --template-file '.\BCDR\handson\iaas\preparation\infra\main.bicep' `
+  --parameters '.\BCDR\handson\iaas\preparation\infra\main.bicepparam'
 ```
 
 `<デプロイ履歴の保存先リージョン>`を利用可能なリージョンコード（例：`japaneast`）に置き換えます。これはVMやコンテナーの配置リージョンではありません。`what-if`の結果で、演習ID、3つのリソースグループ、作成リソース、Bastion Developer、公開IPを確認します。既存リソースの変更が表示された場合は実行せず、演習IDとサブスクリプションを確認してください。
@@ -115,12 +115,12 @@ az deployment sub what-if `
 az deployment sub create `
   --name bcdr-initial `
   --location '<デプロイ履歴の保存先リージョン>' `
-  --template-file '.\BCDR\ハンズオン\IaaS\準備\infra\main.bicep' `
-  --parameters '.\BCDR\ハンズオン\IaaS\準備\infra\main.bicepparam' `
+  --template-file '.\BCDR\handson\iaas\preparation\infra\main.bicep' `
+  --parameters '.\BCDR\handson\iaas\preparation\infra\main.bicepparam' `
   --query properties.outputs --output json
 ```
 
-出力された3つのリソースグループ名、元VMのID・公開IP、Bastion ID、サブネットID、Recovery ServicesコンテナーID、両方のキャッシュストレージ名を記録します。`sourcePageUrl`はApache設定後に使います。元VMには`sourceVmPortalUrl`から開き、Azure Portalの**接続 → Bastion**で接続します。公開IPへのSSH接続はしません。出力値の確認は[01：デプロイ結果の確認](../演習/01-ネットワークとVMの作成.md)を参照してください。
+出力された3つのリソースグループ名、元VMのID・公開IP、Bastion ID、サブネットID、Recovery ServicesコンテナーID、両方のキャッシュストレージ名を記録します。`sourcePageUrl`はApache設定後に使います。元VMには`sourceVmPortalUrl`から開き、Azure Portalの**接続 → Bastion**で接続します。公開IPへのSSH接続はしません。出力値の確認は[01：デプロイ結果の確認](../exercises/01-verify-deployment.md)を参照してください。
 
 ## 5. 完了状態を確認して次へ進む
 
@@ -129,6 +129,6 @@ az deployment sub create `
 - [ ] Apache・HTMLはまだなく、ASR複製もまだ有効になっていない。
 - [ ] パスワードの環境変数を削除した。
 
-この教材はハンズオン用です。初期環境は公開IPとHTTP（TCP 80）を使用し、HTTPSは構成しません。本番環境へそのまま展開しないでください。HTTPのページは誰でも閲覧できるため、静的な演習データ以外を置かず、終了後に削除してください。VNet PeeringとAzure RBACロール割り当ても作成されません。ASR複製を有効にする前に、両方のキャッシュストレージにRecovery ServicesコンテナーのマネージドIDへ必要なロールを割り当てます。詳しくは[03：ASRの構成と初期複製](../演習/03-ASRの構成と初期複製.md)を参照してください。
+この教材はハンズオン用です。初期環境は公開IPとHTTP（TCP 80）を使用し、HTTPSは構成しません。本番環境へそのまま展開しないでください。HTTPのページは誰でも閲覧できるため、静的な演習データ以外を置かず、終了後に削除してください。VNet PeeringとAzure RBACロール割り当ても作成されません。ASR複製を有効にする前に、両方のキャッシュストレージにRecovery ServicesコンテナーのマネージドIDへ必要なロールを割り当てます。詳しくは[03：ASRの構成と初期複製](../exercises/03-configure-asr.md)を参照してください。
 
-全体の進捗チェックの「01」を完了とし、[02：ApacheとHTMLの構成](../演習/02-ApacheとHTMLの構成.md)へ進みます。ASR演習開始後は元VM・ディスク・ネットワークが再構成されるため、このBicepを再展開してリセットしないでください。初期環境を作り直す場合は、[クリーンアップ](../演習/08-クリーンアップ.md)で専用環境を削除し、新しい演習IDで構築します。
+全体の進捗チェックの「01」を完了とし、[02：ApacheとHTMLの構成](../exercises/02-configure-apache.md)へ進みます。ASR演習開始後は元VM・ディスク・ネットワークが再構成されるため、このBicepを再展開してリセットしないでください。初期環境を作り直す場合は、[クリーンアップ](../exercises/08-cleanup.md)で専用環境を削除し、新しい演習IDで構築します。

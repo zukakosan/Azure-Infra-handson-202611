@@ -92,7 +92,7 @@ flowchart LR
 
 ## 4. 開始前の確認事項
 
-開催前に[参加者用の事前準備](./IaaS/準備/00-参加者用の事前準備.md)を済ませます。Azure側の詳細確認には[事前準備と確認ポイント](./IaaS/準備/00-事前準備と確認ポイント.md)を使います。
+開催前に[参加者用の事前準備](../handson/iaas/preparation/00-participant-preparation.md)を済ませます。Azure側の詳細確認には[事前準備と確認ポイント](../handson/iaas/preparation/00-prerequisites.md)を使います。
 
 ### 4.1 アカウント・許可・端末
 
@@ -124,20 +124,20 @@ Portalの表記は更新される場合があります。以下の機能名を�
 
 ### 進め方と進捗チェック
 
-初期環境は[00：Bicepによる初期リソースの作成](./IaaS/準備/00-Bicepによる初期リソースの作成.md)で展開し、[01：デプロイ結果の確認](./IaaS/演習/01-ネットワークとVMの作成.md)を行ってから02へ進みます。
+初期環境は[00：Bicepによる初期リソースの作成](../handson/iaas/preparation/00-create-initial-resources.md)で展開し、[01：デプロイ結果の確認](../handson/iaas/exercises/01-verify-deployment.md)を行ってから02へ進みます。
 
 01〜08を順に進め、完了条件を満たしたページだけチェックします。09はトラブル時に参照します。
 
 待機上限超過やエラー時は未完了のまま停止箇所を記録します。HTMLマーカーと更新時刻はVM外に控えてください。
 
-- [ ] [00：Bicepによる初期リソースの作成](./IaaS/準備/00-Bicepによる初期リソースの作成.md) — 初期環境をデプロイした。
-- [ ] [01：Bicepデプロイ結果の確認](./IaaS/演習/01-ネットワークとVMの作成.md) — 専用Ubuntu VMへBastion Developer経由でログインできる。
-- [ ] [02：ApacheとHTMLの構成](./IaaS/演習/02-ApacheとHTMLの構成.md) — Webページが表示され、演習用のHTMLマーカーを確認できる。
-- [ ] [03：ASRの構成と初期複製](./IaaS/演習/03-ASRの構成と初期複製.md) — 初期複製が完了し、HTML構成後の復旧ポイントを確認できる。
-- [ ] [04：テストフェールオーバーと復旧確認](./IaaS/演習/04-テストフェールオーバーと復旧確認.md) — 復旧先で再インストールせずページが表示され、HTMLが一致する。
-- [ ] [05：実フェールオーバーとHTML更新](./IaaS/演習/05-実フェールオーバーとHTML更新.md) — 元VMを停止し、Region Bで復旧・コミット・HTML更新が完了する。
-- [ ] [06：逆方向の再保護](./IaaS/演習/06-逆方向の再保護.md) — BからAへ複製し、更新後の復旧ポイントを確認できる。
-- [ ] [07：フェールバックと再保護](./IaaS/演習/07-フェールバックと再保護.md) — 更新したHTMLを保持してAへ戻り、AからBの保護を再確立できる。
-- [ ] [08：クリーンアップ](./IaaS/演習/08-クリーンアップ.md) — 最終削除または継続利用の状態・費用・担当者を記録できる。
+- [ ] [00：Bicepによる初期リソースの作成](../handson/iaas/preparation/00-create-initial-resources.md) — 初期環境をデプロイした。
+- [ ] [01：Bicepデプロイ結果の確認](../handson/iaas/exercises/01-verify-deployment.md) — 専用Ubuntu VMへBastion Developer経由でログインできる。
+- [ ] [02：ApacheとHTMLの構成](../handson/iaas/exercises/02-configure-apache.md) — Webページが表示され、演習用のHTMLマーカーを確認できる。
+- [ ] [03：ASRの構成と初期複製](../handson/iaas/exercises/03-configure-asr.md) — 初期複製が完了し、HTML構成後の復旧ポイントを確認できる。
+- [ ] [04：テストフェールオーバーと復旧確認](../handson/iaas/exercises/04-test-failover.md) — 復旧先で再インストールせずページが表示され、HTMLが一致する。
+- [ ] [05：実フェールオーバーとHTML更新](../handson/iaas/exercises/05-failover-and-update.md) — 元VMを停止し、Region Bで復旧・コミット・HTML更新が完了する。
+- [ ] [06：逆方向の再保護](../handson/iaas/exercises/06-reprotect-to-source.md) — BからAへ複製し、更新後の復旧ポイントを確認できる。
+- [ ] [07：フェールバックと再保護](../handson/iaas/exercises/07-failback-and-reprotect.md) — 更新したHTMLを保持してAへ戻り、AからBの保護を再確立できる。
+- [ ] [08：クリーンアップ](../handson/iaas/exercises/08-cleanup.md) — 最終削除または継続利用の状態・費用・担当者を記録できる。
 
-[最初のページへ](./IaaS/演習/01-ネットワークとVMの作成.md) | [補足：よくあるハマりどころとトラブルシューティング](./IaaS/演習/09-よくあるハマりどころとトラブルシューティング.md)
+[最初のページへ](../handson/iaas/exercises/01-verify-deployment.md) | [補足：よくあるハマりどころとトラブルシューティング](../handson/iaas/exercises/09-troubleshooting.md)

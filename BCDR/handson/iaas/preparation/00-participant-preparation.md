@@ -7,7 +7,7 @@
 | **事前** | 1. ツールの準備 → 2. Azureへのログイン確認 |
 | **当日** | 3. 教材ZIPの取得・ファイル確認 |
 
-演習用サブスクリプションは参加者が選びます。この準備ではAzureリソースを作成しません。権限・クォータ・ポリシーの確認は[詳細資料](./00-事前準備と確認ポイント.md)を参照してください。
+演習用サブスクリプションは参加者が選びます。この準備ではAzureリソースを作成しません。権限・クォータ・ポリシーの確認は[詳細資料](./00-prerequisites.md)を参照してください。
 
 ## 1. 必要なツールを用意する（事前に実施）
 
@@ -108,15 +108,15 @@ az account show --query '{Name:name,SubscriptionId:id,TenantId:tenantId,State:st
 ```powershell
 Set-Location '<展開先のリポジトリルート>' -ErrorAction Stop
 
-Test-Path '.\BCDR\ハンズオン\IaaS\準備\infra\main.bicep'
-Test-Path '.\BCDR\ハンズオン\IaaS\準備\infra\main.bicepparam'
+Test-Path '.\BCDR\handson\iaas\preparation\infra\main.bicep'
+Test-Path '.\BCDR\handson\iaas\preparation\infra\main.bicepparam'
 ```
 
 **確認結果：** どちらも **`True`** になれば完了です。`False`の場合は、ZIPの展開先と現在のフォルダーを確認してください。展開先フォルダー名には、ブランチ名などの接尾辞が付く場合があります。
 
 ### SAKURAでパラメータファイルを開く
 
-1. SAKURAを起動し、**ファイル → 開く**で、展開した教材の`BCDR\ハンズオン\IaaS\準備\infra\main.bicepparam`を選択します。
+1. SAKURAを起動し、**ファイル → 開く**で、展開した教材の`BCDR\handson\iaas\preparation\infra\main.bicepparam`を選択します。
 2. ファイルが見つからない場合は、ファイルの種類を **すべてのファイル** にします。
 3. 日本語のコメントが文字化けせず読めることを確認します。文字化けする場合は、文字コードを **UTF-8** に指定して開き直します。
 
@@ -127,4 +127,4 @@ Test-Path '.\BCDR\ハンズオン\IaaS\準備\infra\main.bicepparam'
 - [ ] 教材ZIPを展開し、2つの`Test-Path`が`True`になる
 - [ ] SAKURAで`main.bicepparam`を文字化けなく開ける
 
-当日は演習ID・リージョン・VMサイズ・専用パスワードを決め、[Bicepによる初期リソースの作成](./00-Bicepによる初期リソースの作成.md)へ進みます。
+当日は演習ID・リージョン・VMサイズ・専用パスワードを決め、[Bicepによる初期リソースの作成](./00-create-initial-resources.md)へ進みます。

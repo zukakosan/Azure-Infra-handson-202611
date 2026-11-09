@@ -1,10 +1,10 @@
 # IaaS 01：Bicepデプロイ結果の確認
 
-[前へ](../../01-IaaS-ASRによるDRハンズオン.md) | [全体・進捗チェック](../../01-IaaS-ASRによるDRハンズオン.md) | [次へ](./02-ApacheとHTMLの構成.md)
+[前へ](../../../ハンズオン/01-IaaS-ASRによるDRハンズオン.md) | [全体・進捗チェック](../../../ハンズオン/01-IaaS-ASRによるDRハンズオン.md) | [次へ](./02-configure-apache.md)
 
 > 現在位置：1 / 8。このページの到達点：Bicepで作成した元VMへBastion Developer経由でログインできる。
 
-初期リソースは[00：Bicepによる初期リソースの作成](../準備/00-Bicepによる初期リソースの作成.md)で展開します。このページではリソースを作成・変更せず、展開結果を確認します。
+初期リソースは[00：Bicepによる初期リソースの作成](../preparation/00-create-initial-resources.md)で展開します。このページではリソースを作成・変更せず、展開結果を確認します。
 
 ## Step 1：デプロイ結果を確認する
 
@@ -31,7 +31,7 @@ Bicepはネットワーク、VM、コンテナー、キャッシュストレー�
 3. **接続 → Bastion**からSKU `Developer`を選び、ユーザー名`azureuser`とBicepで設定した演習専用パスワードで接続します。公開IPへSSH接続しません。
 4. 接続先VM名とプライベートIPを確認します。Bastionでは同時に1接続とし、別VMへ接続するときはセッションを閉じます。
 
-VMのOS・カーネルがASR対応であることも[Trusted Launchの条件](https://learn.microsoft.com/ja-jp/azure/site-recovery/concepts-trusted-vm)で確認します。Secure BootとvTPMは無効にしません。VM作成画面からASRを有効にせず、[03：ASRの構成](./03-ASRの構成と初期複製.md)で設定します。
+VMのOS・カーネルがASR対応であることも[Trusted Launchの条件](https://learn.microsoft.com/ja-jp/azure/site-recovery/concepts-trusted-vm)で確認します。Secure BootとvTPMは無効にしません。VM作成画面からASRを有効にせず、[03：ASRの構成](./03-configure-asr.md)で設定します。
 
 **確認結果**：Bicepで作成した元VMへBastion Developerから接続でき、Region A・VM名・ネットワークを確認できること。
 
@@ -40,6 +40,6 @@ VMのOS・カーネルがASR対応であることも[Trusted Launchの条件](ht
 - [ ] Bicepで3つのリソースグループ、VNet、NSG、Bastion、コンテナー、キャッシュストレージ、元VMを展開した。
 - [ ] 元VM・ネットワークを確認し、Bastion Developer経由でパスワードログインできた。
 
-完了したら[全体ページ](../../01-IaaS-ASRによるDRハンズオン.md)を更新し、[02：ApacheとHTMLの構成](./02-ApacheとHTMLの構成.md)へ進みます。
+完了したら[全体ページ](../../../ハンズオン/01-IaaS-ASRによるDRハンズオン.md)を更新し、[02：ApacheとHTMLの構成](./02-configure-apache.md)へ進みます。
 
-[前へ](../../01-IaaS-ASRによるDRハンズオン.md) | [全体・進捗チェック](../../01-IaaS-ASRによるDRハンズオン.md) | [次へ](./02-ApacheとHTMLの構成.md)
+[前へ](../../../ハンズオン/01-IaaS-ASRによるDRハンズオン.md) | [全体・進捗チェック](../../../ハンズオン/01-IaaS-ASRによるDRハンズオン.md) | [次へ](./02-configure-apache.md)

@@ -1,16 +1,16 @@
 # IaaS 02：ApacheとHTMLの構成
 
-[前へ](./01-ネットワークとVMの作成.md) | [全体・進捗チェック](../../01-IaaS-ASRによるDRハンズオン.md) | [次へ](./03-ASRの構成と初期複製.md)
+[前へ](./01-verify-deployment.md) | [全体・進捗チェック](../../../ハンズオン/01-IaaS-ASRによるDRハンズオン.md) | [次へ](./03-configure-asr.md)
 
 > 現在位置：2 / 8。このページの到達点：Webページが表示され、演習用のHTMLマーカーを確認できる。
 
-[前のページ](./01-ネットワークとVMの作成.md)の完了条件を満たしてから進んでください。
+[前のページ](./01-verify-deployment.md)の完了条件を満たしてから進んでください。
 
 ## このページの手順
 
 ### Step 2：Ubuntuへログインし、ApacheとHTMLを構成する
 
-[00のBicep手順](../準備/00-Bicepによる初期リソースの作成.md)で作成した元VMへ、Portalの **接続 → Bastion** からDeveloper経由で接続します。ユーザー名は`azureuser`、パスワードはデプロイ時に設定した演習専用の値です。公開IPへSSH接続しません。
+[00のBicep手順](../preparation/00-create-initial-resources.md)で作成した元VMへ、Portalの **接続 → Bastion** からDeveloper経由で接続します。ユーザー名は`azureuser`、パスワードはデプロイ時に設定した演習専用の値です。公開IPへSSH接続しません。
 
 #### 2.1 Apacheをインストールし、自動起動を設定する
 
@@ -90,6 +90,6 @@ curl --fail --silent --show-error --connect-timeout 5 --max-time 15 http://127.0
 - [ ] Apacheのインストールと自動起動設定を完了した。
 - [ ] HTMLの表示を確認し、HTMLマーカーと時刻を記録した。
 
-完了したら[全体ページ](../../01-IaaS-ASRによるDRハンズオン.md)の対応するチェックを更新します。未完了の場合は進捗メモに停止箇所と理由を残してください。
+完了したら[全体ページ](../../../ハンズオン/01-IaaS-ASRによるDRハンズオン.md)の対応するチェックを更新します。未完了の場合は進捗メモに停止箇所と理由を残してください。
 
-[前へ](./01-ネットワークとVMの作成.md) | [全体・進捗チェック](../../01-IaaS-ASRによるDRハンズオン.md) | [次へ](./03-ASRの構成と初期複製.md)
+[前へ](./01-verify-deployment.md) | [全体・進捗チェック](../../../ハンズオン/01-IaaS-ASRによるDRハンズオン.md) | [次へ](./03-configure-asr.md)

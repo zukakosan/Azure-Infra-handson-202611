@@ -2,82 +2,103 @@
 
 [事前準備と確認ポイント](./00-事前準備と確認ポイント.md) | [全体・進捗チェック](../../01-IaaS-ASRによるDRハンズオン.md) | [次へ：ApacheとHTMLの構成](../演習/02-ApacheとHTMLの構成.md)
 
-[初期環境のBicep](./infra/main.bicep)でリソースを作成します。新しい演習IDと専用リソースグループを使用し、既存の手作業環境へ重ねて展開しないでください。
+この手順では、Bicepでハンズオンの初期環境を作成します。まず図で作成範囲を確認し、パラメータファイルの値を設定してデプロイします。既存の手作業環境には展開せず、新しい演習IDを使ってください。
 
-## 作成するリソース
+## 作成するリソースと完了後の状態
 
-| 配置 | リソース |
+```mermaid
+flowchart LR
+  subgraph A["Region A：元環境"]
+    subgraph SRC["rg-bcdr-src-演習ID"]
+      SN["VNet / サブネット / NSG"]
+      SB["Bastion Developer"]
+      VM["Ubuntu 22.04 VM<br/>Trusted Launch"]
+      NIC["NIC"]
+      PIP["Standard 公開IPv4"]
+      DISK["OS管理ディスク"]
+      SC["キャッシュストレージ<br/>Standard LRS"]
+      SN --- SB
+      SN --- NIC
+      NIC --- VM
+      PIP --- NIC
+      VM --- DISK
+    end
+  end
+
+  subgraph B["Region B：復旧環境"]
+    subgraph DR["rg-bcdr-dr-演習ID"]
+      DN["VNet / サブネット / NSG"]
+      DB["Bastion Developer"]
+      VAULT["Recovery Services<br/>コンテナー"]
+      RC["キャッシュストレージ<br/>Standard LRS"]
+      DN --- DB
+    end
+    subgraph TEST["rg-bcdr-test-演習ID"]
+      TN["テスト用VNet / サブネット / NSG"]
+      TB["Bastion Developer"]
+      TN --- TB
+    end
+  end
+
+  STATE["デプロイ完了：初期環境<br/>Apache・HTMLなし<br/>ASR複製・ポリシー・復旧VMなし<br/>VNet Peering・RBAC割り当てなし"]
+  SRC -.-> STATE
+  DR -.-> STATE
+  TEST -.-> STATE
+```
+
+ASRの複製を有効にする操作は後続手順で行います。ASRのテストVM・復旧VMもこのデプロイでは作成されません。テスト用のリソースグループとネットワークだけを先に用意します。
+
+## 1. どこに何を書くか
+
+編集するのは[infra/main.bicepparam](./infra/main.bicepparam)です。[infra/main-sample.bicepparam](./infra/main-sample.bicepparam)は記入例です。`main.bicepparam`を開き、演習IDとリージョンを設定します。
+
+```bicep
+using './main.bicep'
+
+param exerciseId = 'YOUR-ID'
+param sourceLocation = 'japaneast'
+param recoveryLocation = 'japanwest'
+param adminPassword = readEnvironmentVariable('BCDR_ADMIN_PASSWORD')
+```
+
+| パラメーター | ここに設定する値 |
 |---|---|
-| Region A（既定：東日本） | 専用元リソースグループ、元VNet・サブネット・NSG・Bastion Developer、Ubuntu Server 22.04 LTS Gen2 VM、OS管理ディスク、NIC、Standard公開IPv4、キャッシュストレージ |
-| Region B（既定：西日本） | 専用DR用リソースグループ（VNet・NSG・Bastion Developer、Recovery Servicesコンテナー、再保護用キャッシュストレージ）、専用テスト用リソースグループ（VNet・NSG・Bastion Developer） |
+| `exerciseId` | 自分の演習ID。英小文字・数字・ハイフンで1～24文字、先頭と末尾は英数字。3つのリソースグループ名にも使われます |
+| `sourceLocation` | 元環境のリージョンコード。既定は`japaneast` |
+| `recoveryLocation` | 復旧・テスト環境のリージョンコード。既定は`japanwest`。元とは異なるリージョンを指定 |
+| `adminPassword` | この行は変更しません。パスワードは次の手順で環境変数に設定します |
 
-RG名は`rg-bcdr-src-<演習ID>`、`rg-bcdr-dr-<演習ID>`、`rg-bcdr-test-<演習ID>`です。Bicepは各VNet・サブネット・NSG・Bastion Developerを作成し、NSGはSSH（22）をVirtualNetwork・`168.63.129.16/32`から許可、それ以外を拒否します。HTTP（80）は演習ページ用です。VNet間接続は作成しません。詳細は[01：デプロイ結果の確認](../演習/01-ネットワークとVMの作成.md)を参照してください。
+リージョンを変える場合は、`sourceLocation`と`recoveryLocation`をペアで変更します。例：`southeastasia`と`eastasia`。両リージョンのVMサイズ・Ubuntuイメージ・ASR・Bastion Developerの対応、クォータ、組織の許可リージョンを事前確認してください。候補は[Azureのペアリージョン](https://learn.microsoft.com/azure/reliability/regions-paired)を参照します。デプロイ履歴の保存先リージョンは、下記コマンドの`--location`で別に指定します。
 
-**Apache、HTML、ASRの複製有効化・ポリシー・復旧VMは作成しません。** 初期複製も始まりません。キャッシュストレージは両リージョンにStandard LRSで事前作成します。名前は`stbcdrsrc<一意文字列>`・`stbcdrdr<一意文字列>`で、グループIDから生成する一意文字列を使います。Azure RBACの割り当ては行わず、[ASR構成手順](../演習/03-ASRの構成と初期複製.md)で参加者が付与します。
+VMサイズは`Standard_D2s_v5`、Ubuntuイメージバージョンは`latest`が既定値です。これらを変える場合は[infra/main.bicep](./infra/main.bicep)の`vmSize`・`imageVersion`の既定値を編集します。`latest`を使う場合は、初回構築後にOS・カーネルのASR対応を確認してください。反復開催では検証済みバージョンを指定してください。
 
-テスト用グループにはテストVNet・NSG・Bastionを分けます。ASRが作成するテストVMなどの配置先は、サービスが示すRGをPortalで確認してください。このBicepがASRのテストVM配置先まで制御するものではありません。
+## 2. パスワードとサブスクリプションを設定する
 
-## 開始条件と注意
-
-- Azure CLI、演習用サブスクリプション、サブスクリプションスコープの展開とリソース作成権限が必要です。Bicep CLIはBicepを使うコマンドの初回実行時にAzure CLIが自動インストールします。
-- `exerciseId`は英小文字・数字・ハイフンの1～24文字とし、先頭・末尾は英数字にします。
-- 対応するリージョンペア、Ubuntuイメージ、VMサイズ（既定`Standard_D2s_v5`）を選び、ASR対応・クォータ・ポリシーを確認します。コンパイルだけでは検証されません。
-- `imageVersion`の既定は`latest`です。初回構築後にOS・カーネルのASR対応を確認し、反復開催では検証済みイメージバージョンを固定してください。
-- 演習VM専用の強固なパスワードを自分で作成します。リポジトリに保存せず、他環境では使いません。Bicepには`adminPassword`のsecure parameterとして渡します。
-- 両リージョンのBastion Developer対応を確認します。Developer用の`AzureBastionSubnet`と専用公開IPは作成しません。有料SKUへ自動変更しません。
-- VMはTrusted Launchで作成し、Secure BootとvTPMを有効にします。Ubuntu 22.04のASR対応は[公式条件](https://learn.microsoft.com/ja-jp/azure/site-recovery/concepts-trusted-vm)に従い、実際のカーネルも確認します。LinuxではVM作成時のASR有効化を使わず、後からコンテナーで設定します。Standardセキュリティ用のサブスクリプション機能登録は不要です。
-- 組織が公開IPを許可する専用演習向けです。HTTP、公開IP、コンテナーの公開サービスエンドポイントを使用します。本番用のPrivate Endpoint構成ではありません。
-- HTTPは暗号化・認証なしで誰でも閲覧できます。静的な演習データ以外を置かず、終了後に削除してください。HTTPS（443）は構成しません。
-- コンテナーはシステム割り当てIDを有効化します。キャッシュストレージはHTTPS・TLS 1.2以上とし、匿名Blobアクセス・共有キー認証は無効です。演習の既存ネットワークから接続するため公開サービスエンドポイントを使い、Private Endpointは作成しません。複製有効化前に、両方のストレージでコンテナーのIDへ必要なロールを付与します。参加者にはロール割り当てを作成できる権限が必要です。
-- サブネットの既定の送信接続は無効です。元VMは明示的な公開IPを送信にも使用します。テスト・復旧先は各演習の手順で公開IPを関連付けます。
-
-## 1. パラメータを指定する
-
-リポジトリルートのPowerShellで実行します。これはUbuntu VM内のコマンドではありません。
+リポジトリのルートでPowerShellを開き、演習用サブスクリプションを選択します。パスワードは演習専用のものを使い、ファイルやリポジトリには書かないでください。
 
 ```powershell
 az login
+if ($LASTEXITCODE -ne 0) { throw 'Azure login failed.' }
+
 az account set --subscription '<演習用サブスクリプションID>'
 if ($LASTEXITCODE -ne 0) { throw 'Subscription selection failed.' }
 
-$env:BCDR_ADMIN_PASSWORD = '<演習用パスワード>'
+$env:BCDR_ADMIN_PASSWORD = '<演習専用パスワード>'
 ```
 
-英大文字・英小文字・数字・記号を含む12～123文字の演習専用パスワードに置き換えます。環境変数は平文として保持されるため、表示・保存・共有せず、演習専用VM以外では使用しません。
-
-**環境変数の設定と、以降のビルド・デプロイは同じPowerShellターミナルで実行してください。** この設定は現在のPowerShellプロセス内だけで有効です。ターミナルを開き直した場合は再設定します。値を表示せずに設定済みか確認するには、次を実行します。
+パスワードは英大文字・英小文字・数字・記号を含む12～123文字にします。`main.bicepparam`の`adminPassword`は、この環境変数をBicepのsecure parameterとして読み込みます。環境変数の値自体は平文として保持されます。表示・保存・共有せず、以降のコマンドも同じPowerShellターミナルで実行してください。設定状態は値を表示せずに確認できます。
 
 ```powershell
 Test-Path Env:BCDR_ADMIN_PASSWORD
 ```
 
-`True`なら設定されています。`False`なら設定コマンドを実行してください。環境変数の値は平文として保持され、`@secure()`でも環境変数自体が暗号化されるわけではありません。デプロイ完了後は、次のコマンドで削除します。
+`True`なら設定済みです。デプロイ後は環境変数を削除します。
 
 ```powershell
 Remove-Item Env:BCDR_ADMIN_PASSWORD
 ```
 
-[パラメータファイル](./infra/main.bicepparam)に自分の演習IDと選んだリージョンを設定します。パスワードは環境変数からsecure parameterとして読み込みます。
-
-### クォータ不足時のリージョン切り替え
-
-`sourceLocation`（Region A）と`recoveryLocation`（Region B）は既にパラメータ化されています。[パラメータファイル](./infra/main.bicepparam)と[サンプル](./infra/main-sample.bicepparam)のコメントに、[Azureの公式ペアリージョン](https://learn.microsoft.com/azure/reliability/regions-paired)の候補を記載しています。
-
-| 候補 | `sourceLocation` | `recoveryLocation` |
-|---|---|---|
-| 東日本 / 西日本（既定） | `japaneast` | `japanwest` |
-| 東南アジア / 東アジア | `southeastasia` | `eastasia` |
-| オーストラリア東部 / 南東部 | `australiaeast` | `australiasoutheast` |
-| 北ヨーロッパ / 西ヨーロッパ | `northeurope` | `westeurope` |
-| 米国東部2 / 米国中部 | `eastus2` | `centralus` |
-
-元と復旧先は逆方向でも構いません。切り替える場合は**2つの値をペアで変更**し、両リージョンで[クォータとサービス対応](./00-事前準備と確認ポイント.md#33-両リージョンのクォータとサービス対応)および組織の許可リージョンを確認します。候補は両側が[Bastion Developerの対応リージョン](https://learn.microsoft.com/azure/bastion/bastion-sku-comparison#regional-availability)に含まれる組み合わせですが、VMサイズ・イメージ・ASR対応・クォータ・実際の容量は実行前に再確認が必要です。ペアであることは、クォータや容量の確保を保証しません。
-
-リージョンは初回作成前に選びます。作成後に別リージョンへ変更する場合は、[クリーンアップ](../演習/08-クリーンアップ.md)後、新しい`exerciseId`で作り直します。パラメータ変更で既存リソースは移動しません。
-
-## 2. ローカルビルドと変更内容の確認
-
-以下の`--location`には、利用可能なリージョンコードを指定します。リージョンペアは`sourceLocation`・`recoveryLocation`で指定します。
+## 3. ビルドして変更内容を確認する
 
 ```powershell
 az bicep build --file '.\BCDR\ハンズオン\IaaS\準備\infra\main.bicep' --stdout | Out-Null
@@ -91,11 +112,11 @@ az deployment sub what-if `
 if ($LASTEXITCODE -ne 0) { throw 'Deployment what-if failed.' }
 ```
 
-`--location`はデプロイ履歴の保存先で、VMやコンテナーのリージョンとは別です。3つのRG名、BastionのDeveloper SKU、公開IP、NSG規則、費用を確認します。既存リソースの変更が表示されたら中止し、演習IDを確認します。
+`<デプロイ履歴の保存先リージョン>`を利用可能なリージョンコード（例：`japaneast`）に置き換えます。これはVMやコンテナーの配置リージョンではありません。`what-if`の結果で、演習ID、3つのリソースグループ、作成リソース、Bastion Developer、公開IPを確認します。既存リソースの変更が表示された場合は実行せず、演習IDとサブスクリプションを確認してください。
 
-## 3. 内容を確認して展開する
+## 4. デプロイする
 
-以下はAzureリソースを作成し、費用が発生します。自分の権限と組織で必要な承認を確認してから実行してください。
+リソース作成により費用が発生します。事前準備と組織の承認を済ませ、`what-if`の内容を確認してから実行してください。
 
 ```powershell
 az deployment sub create `
@@ -105,17 +126,19 @@ az deployment sub create `
   --parameters '.\BCDR\ハンズオン\IaaS\準備\infra\main.bicepparam' `
   --query properties.outputs --output json
 if ($LASTEXITCODE -ne 0) { throw 'Deployment failed. Inspect deployment operations before retrying.' }
+
+Remove-Item Env:BCDR_ADMIN_PASSWORD
 ```
 
-出力された3つのRG名、VM ID、公開IP、Bastion ID、サブネットID、コンテナーID、`sourceCacheStorageAccountName`、`recoveryCacheStorageAccountName`を記録します。`sourcePageUrl`はApache設定後に使用します。`sourceVmPortalUrl`から元VMを開き、**接続 → Bastion**で`azureuser`と設定済みパスワードを使って接続します。詳細は[01：デプロイ結果の確認](../演習/01-ネットワークとVMの作成.md)を参照してください。公開IPへSSH接続しません。
+出力された3つのリソースグループ名、元VMのID・公開IP、Bastion ID、サブネットID、Recovery ServicesコンテナーID、両方のキャッシュストレージ名を記録します。`sourcePageUrl`はApache設定後に使います。元VMには`sourceVmPortalUrl`から開き、Azure Portalの**接続 → Bastion**で接続します。公開IPへのSSH接続はしません。出力値の確認は[01：デプロイ結果の確認](../演習/01-ネットワークとVMの作成.md)を参照してください。
 
-## 4. ハンズオンへ戻る
+## 5. 完了状態を確認して次へ進む
 
-- [ ] VM・3つのVNet・NSG・Bastion Developer・コンテナー・両リージョンのキャッシュストレージの展開が成功した。
-- [ ] 元VMへBastion Developer経由でパスワードログインできた。
-- [ ] OS・カーネル・ディスク・リージョンを確認し、リソース情報を記録した。
-- [ ] Apache未導入・ASR複製未有効の状態であることを理解した。
+- [ ] 元・復旧・テスト用の3つのリソースグループと、図に示したリソースが作成された。
+- [ ] 元VMへBastion Developer経由で接続できた。
+- [ ] Apache・HTMLはまだなく、ASR複製もまだ有効になっていない。
+- [ ] パスワードの環境変数を削除した。
 
-全体の進捗チェックの「01」を完了とし、[02：ApacheとHTMLの構成](../演習/02-ApacheとHTMLの構成.md)へ進みます。その後、[03：ASRの構成と初期複製](../演習/03-ASRの構成と初期複製.md)では既存のコンテナーを開き、作成をスキップしてレプリケーション有効化から実施します。
+初期環境は公開IPとHTTP（TCP 80）を使用し、HTTPSは構成しません。HTTPのページは誰でも閲覧できるため、静的な演習データ以外を置かず、終了後に削除してください。VNet PeeringとAzure RBACロール割り当ても作成されません。ASR複製を有効にする前に、両方のキャッシュストレージにRecovery ServicesコンテナーのマネージドIDへ必要なロールを割り当てます。詳しくは[03：ASRの構成と初期複製](../演習/03-ASRの構成と初期複製.md)を参照してください。
 
-ASR演習開始後は元VM・ディスク・ネットワークが再構成されるため、**初期環境のBicepを再展開してリセットしないでください。** 初期環境を再作成する場合は、[クリーンアップ](../演習/08-クリーンアップ.md)で保護を解除して専用環境を削除し、新しい演習として構築します。
+全体の進捗チェックの「01」を完了とし、[02：ApacheとHTMLの構成](../演習/02-ApacheとHTMLの構成.md)へ進みます。ASR演習開始後は元VM・ディスク・ネットワークが再構成されるため、このBicepを再展開してリセットしないでください。初期環境を作り直す場合は、[クリーンアップ](../演習/08-クリーンアップ.md)で専用環境を削除し、新しい演習IDで構築します。

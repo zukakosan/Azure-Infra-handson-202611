@@ -37,12 +37,24 @@ sudo shutdown -h now
 #### 10.2 Region Aへフェールバックし、Webページと更新内容を確認する
 
 1. Recovery Servicesコンテナーの **レプリケートされたアイテム**から対象を開き、**フェールオーバー（Failover）**を選択します。テストフェールオーバーを実施していない旨の警告・確認が表示された場合は、上記の演習方針と10.1の確認結果を踏まえ、省略して実行することを確認して進みます。
-![alt text](./files/image-29.png)
-![alt text](./files/image-30.png)
+
+<p align="center">
+  <img src="./files/image-29.png" alt="alt text" width="800">
+</p>
+
+
+<p align="center">
+  <img src="./files/image-30.png" alt="alt text" width="800">
+</p>
+
 2. ソースがRegion B、ターゲットがRegion Aであることと、戻す先が元のリソースグループ・VNet・サブネットであることを確認します。テスト専用VNetは使用しません。
 3. 復旧ポイントは**最新（Latest）**を選択します。これはASRへ送信済みのデータを処理して復旧ポイントを作成する選択肢です。Bの未複製データまで必ず復元できるという意味ではないため、10.1での更新後の復旧ポイント確認が必要です。
 4. **開始前にマシンをシャットダウンする**が表示される場合は選択します。この機能はソースの停止を試みますが、停止に失敗してもフェールオーバーが続行されるため、10.1での停止確認を省略しません。
-![alt text](./files/image-31.png)
+
+<p align="center">
+  <img src="./files/image-31.png" alt="alt text" width="800">
+</p>
+
 5. 設定を確認して実行し、開始時刻を記録します。**Site Recoveryジョブ**で対象ジョブの成功を確認してから、復帰したAのVMが実行中であることを確認します。
 6. AのVM・ディスク・NIC・VNetとTrusted Launch、Secure Boot・vTPMの状態を確認します。元のVM名・NIC・IPが再利用されているか確認します。ディスクは再構成される場合があります。
 7. Aの実際のNICの主IP構成と公開IPを確認します。公開IPが未関連付けの場合は、リージョン・SKU・対象NICを確認して、演習専用Standard公開IPv4を関連付けます。元の公開IPが未使用で条件を満たす場合は再利用できます。
@@ -86,18 +98,34 @@ VM名・NIC・IPの再利用と、ディスクの同一性は分けて確認し�
 1. AのWeb表示、Bのマーカーとの一致、Bの停止を再確認し、時刻と証拠を保存します。必要な組織承認があれば取得します。
 2. **コミット後は、このアイテムの既存の復旧ポイントが削除され、復旧ポイントを変更できなくなること**を確認します。
 3. 対象のレプリケートされたアイテムで**コミット（Commit）**を選択し、確認ダイアログで承認します。
-![alt text](./files/image-32.png)
+
+<p align="center">
+  <img src="./files/image-32.png" alt="alt text" width="800">
+</p>
+
 4. Site Recoveryジョブの成功と、アイテムが**Failover committed**に相当する状態になったことを確認します。
-![alt text](./files/image-33.png)
+
+<p align="center">
+  <img src="./files/image-33.png" alt="alt text" width="800">
+</p>
+
 **確認結果**：Aへのフェールバックがコミット済みであること。稼働先はAに戻りましたが、AからBへのDR保護の再確立は次のStepで行います。
 
 ### Step 11：Region AからBへの保護を再確立する
 
 1. Aへのフェールバックがコミット済みであること、AのWebが正常であることを確認します。Aの公開IP・NSGなどの接続設定は再保護を開始する前に確定します。
 2. **再保護（Re-Protect）** を選び、ソースA、ターゲットB、通常復旧先のグループ・VNet・サブネット・VMサイズを確認します。テスト専用VNetは指定しません。
-![alt text](./files/image-34.png)
+
+<p align="center">
+  <img src="./files/image-34.png" alt="alt text" width="800">
+</p>
+
 3. [逆方向の再保護](./06-reprotect-to-source.md)と同様に、キャッシュストレージが稼働先のAに必要なことと、Bの旧復旧VM・ディスクが再構成され得ることを承認します。設定の編集で、Region Aに用意した既存ストレージ（Bicep出力`sourceCacheStorageAccountName`）を選択し、コンテナーのIDへのロール割り当てを確認します。BのVMやディスクを先に手動削除しません。
-![alt text](./files/image-35.png)
+
+<p align="center">
+  <img src="./files/image-35.png" alt="alt text" width="800">
+</p>
+
 4. 再保護を実行し、Site Recoveryジョブと複製状態を確認します。
 5. 完了後、Aが稼働先で、AからBの複製が正常で、更新後HTMLを含む復旧ポイントがあることを確認します。
 6. AのWeb表示とマーカーが変わっていないことを確認し、終了時の保護状態を記録します。Bの旧復旧VMは手動起動しません。

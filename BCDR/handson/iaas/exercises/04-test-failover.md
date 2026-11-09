@@ -14,7 +14,11 @@
 
 1. 対象のレプリケートされたアイテムで **テストフェールオーバー（Test Failover）** を選択します。通常の **フェールオーバー** は選択しません。
 2. 基本演習では **最新の処理済み（Latest processed）** を選び、表示された復旧ポイントの時刻を記録します。[Step 3](./03-configure-asr.md)で確認した構成後の時刻であることを再確認します。
-![alt text](./files/image-13.png)
+
+<p align="center">
+  <img src="./files/image-13.png" alt="alt text" width="800">
+</p>
+
 3. Region Bの指定された **テスト用VNet** を選択します。元の業務ネットワークは選択しません。
 4. 対象・復旧ポイント・接続先が自分の演習環境であることを確認します。
 5. 実行し、操作開始時刻を記録します。
@@ -59,9 +63,17 @@ curl --fail --silent --show-error --connect-timeout 5 --max-time 15 http://127.0
 ### Step 6：テストフェールオーバーを終了する
 
 1. レプリケートされたアイテムで **テストフェールオーバーのクリーンアップ（Cleanup test failover）** を選択します。
-![alt text](./files/image-14.png)
+
+<p align="center">
+  <img src="./files/image-14.png" alt="alt text" width="800">
+</p>
+
 2. 表示された確認項目に従い、クリーンアップを実行します。
-![alt text](./files/image-15.png)
+
+<p align="center">
+  <img src="./files/image-15.png" alt="alt text" width="800">
+</p>
+
 3. クリーンアップジョブが成功し、テスト用VMが削除されたことを確認します。手動作成したテスト用公開IPが残っている場合は、他のリソースで使用していないことを確認して削除します。
 
 **確認結果**：テストが終了し、実フェールオーバーへ進めること。この時点では、元のVM、コンテナー、複製設定、通常復旧先VNetを削除しません。

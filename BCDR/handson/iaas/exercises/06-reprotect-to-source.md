@@ -15,7 +15,11 @@
 #### 9.1 再保護の前提と影響を確認する
 
 1. レプリケートされたアイテムが**Failover committed**に相当する状態であることを確認します。
-![alt text](./files/image-25.png)
+
+<p align="center">
+  <img src="./files/image-25.png" alt="alt text" width="800">
+</p>
+
 
 2. Region BのWebページが正常で、更新後HTMLのマーカーと時刻をVM外へ保存していることを確認します。
 3. Region Aでリソース作成・更新が可能であり、必要な権限、VMサイズのクォータ・容量、元のVNet・グループが利用できることを確認します。
@@ -29,13 +33,25 @@
 > **注意：再保護にはデータ同期の時間がかかります。ジョブ完了、複製正常、更新後の復旧ポイントを確認してから進んでください。待機上限は開始前に設定します。**
 
 1. コンテナーの対象アイテムで **再保護（Re-Protect）** を選択します。
-![alt text](./files/image-26.png)
+
+<p align="center">
+  <img src="./files/image-26.png" alt="alt text" width="800">
+</p>
+
 2. ソースがRegion B、ターゲットがRegion Aであることを確認します。
 3. ターゲットが元の専用グループ・元のVNet・`subnet-web`であること、VMサイズとディスク設定を確認します。キャッシュストレージは稼働先のRegion Bに必要です。設定の編集で、用意したRegion Bの既存ストレージ（Bicep出力`recoveryCacheStorageAccountName`）を選択します。自動作成候補が表示された場合も、そのまま実行せず選択先を確認します。
-![alt text](./files/image-27.png)
+
+<p align="center">
+  <img src="./files/image-27.png" alt="alt text" width="800">
+</p>
+
 4. 自動作成・再利用・再構成されるリソース名を確認します。
 5. 実行時刻を記録し、Site Recoveryジョブで再保護の進行と結果を確認します。
-![alt text](./files/image-28.png)
+
+<p align="center">
+  <img src="./files/image-28.png" alt="alt text" width="800">
+</p>
+
 6. ジョブ完了に加え、BからAの複製が正常で、復旧ポイントが生成されていることを確認します。
 7. 最新の処理済み復旧ポイントの時刻が、Bで記録した`Write completed at UTC`より後であることを確認します。タイムゾーンを揃えて比較します。
 

@@ -25,14 +25,34 @@
 #### 7.2 実フェールオーバーと復旧確認
 
 1. コンテナーの **レプリケートされたアイテム** で対象を開き、**フェールオーバー（Failover）** を選択します。今回は **テストフェールオーバー** ではありません。
-![alt text](./files/image-17.png)
+
+<p align="center">
+  <img src="./files/image-17.png" alt="alt text" width="800">
+</p>
+
 2. 複製方向がAからBであることを確認し、**最新（Latest）** を選択します。これはASRへ送信済みのデータを処理して復旧ポイントを生成する方式で、未送信データの損失ゼロを保証するものではありません。
 3. **フェールオーバーを開始する前にマシンをシャットダウンする** が表示される場合は選択します。ただし、シャットダウン失敗時も切り替えが続行され得るため、先に行った元VMの停止確認を省略しません。
-![alt text](./files/image-16.png)
+
+<p align="center">
+  <img src="./files/image-16.png" alt="alt text" width="800">
+</p>
+
 4. 実行時刻を記録し、Site Recoveryジョブで成功・失敗とジョブIDを確認します。
-![alt text](./files/image-18.png)
-![alt text](./files/image-19.png)
-![alt text](./files/image-20.png)
+
+<p align="center">
+  <img src="./files/image-18.png" alt="alt text" width="800">
+</p>
+
+
+<p align="center">
+  <img src="./files/image-19.png" alt="alt text" width="800">
+</p>
+
+
+<p align="center">
+  <img src="./files/image-20.png" alt="alt text" width="800">
+</p>
+
 5. 作成されたRegion Bの復旧VMが、テスト専用ではなく**通常復旧先VNet**に接続していることを確認します。Trusted Launch、Secure Boot・vTPMの有効状態も照合します。
 6. 復旧VMのNICの主IP構成へRegion Bの演習専用Standard公開IPv4を関連付けます。[テスト時の接続設定](./04-test-failover.md)と同じ操作ですが、今回の復旧VMと通常復旧先NSGを使用します。
 7. 公開IP、NIC、VNet、NSGを記録します。復旧VMの **接続 → Bastion** から、通常復旧先VNetのBastion Developerと`azureuser`・自分で設定した演習専用パスワードで接続します。テストVMのセッションは閉じます。
@@ -58,9 +78,17 @@ curl --fail --silent --show-error --connect-timeout 5 --max-time 15 http://127.0
 
 1. Apache、HTML、利用者経路からの表示、元VMの停止を再確認します。組織で承認が必要な場合は、コミット前に取得します。
 2. レプリケートされたアイテムの **コミット（Commit）** を実行します。
-![alt text](./files/image-21.png)
+
+<p align="center">
+  <img src="./files/image-21.png" alt="alt text" width="800">
+</p>
+
 3. コミットジョブの成功と、**Failover committed**に相当する状態を確認します。
-![alt text](./files/image-24.png)
+
+<p align="center">
+  <img src="./files/image-24.png" alt="alt text" width="800">
+</p>
+
 
 **コミットすると既存の復旧ポイントが削除され、別の復旧ポイントへの変更ができなくなります。** 証拠を保存し、復旧結果を確認してから実行します。コミットは再保護ではなく、この時点では逆方向の複製はまだ開始していません。
 

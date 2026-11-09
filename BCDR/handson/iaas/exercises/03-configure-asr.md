@@ -18,7 +18,11 @@
 2. 名前が`rsv-bcdr-<演習ID>`、所属グループが`rg-bcdr-dr-<演習ID>`、リージョンがRegion Bであることを確認します。
 3. コンテナーの **ID（Identity）→ システム割り当て** を開き、**状態：オン** を確認します。**オフの場合はオンに変更し、保存を押して、確認画面が表示された場合は承認します。**
 4. 保存が完了し、状態が **オン**、**オブジェクト（プリンシパル）ID** が表示されていることを確認します。このマネージドIDを、次のストレージへの権限付与先にします。
-![alt text](files/image-40.png)
+
+<p align="center">
+  <img src="files/image-40.png" alt="alt text" width="800">
+</p>
+
 
 #### 3.1.1 キャッシュストレージとアクセス権限を準備する
 
@@ -43,8 +47,16 @@
    |---|---|
    | **共同作成者（Contributor）** | 対象のストレージアカウントのみ |
    | **ストレージ BLOB データ共同作成者（Storage Blob Data Contributor）** | 対象のストレージアカウントのみ |
-![alt text](files/image-41.png)
-![alt text](files/image-42.png)
+
+<p align="center">
+  <img src="files/image-41.png" alt="alt text" width="800">
+</p>
+
+
+<p align="center">
+  <img src="files/image-42.png" alt="alt text" width="800">
+</p>
+
 
 > 参考：[ASRで使用するストレージへのアクセス権限（Microsoft Learn）](https://learn.microsoft.com/azure/site-recovery/site-recovery-faq#security)
 
@@ -55,22 +67,50 @@
 Trusted LaunchのLinux VMは、VM作成画面のSite Recovery同時有効化ではなく、以下のコンテナーからの手順を使います。Ubuntu 22.04と実際のカーネルが[サポート対象](https://learn.microsoft.com/ja-jp/azure/site-recovery/concepts-trusted-vm)であることを確認します。ASRはSecure Boot・vTPM設定を保持しますが、ブート整合性監視の状態は複製しません。
 
 1. コンテナーの **Site Recovery** を開き、**Azure仮想マシン → レプリケーションを有効にする（Enable replication）** を選択します。
-![alt text](./files/image.png)
-![alt text](./files/image-1.png)
+
+<p align="center">
+  <img src="./files/image.png" alt="alt text" width="800">
+</p>
+
+
+<p align="center">
+  <img src="./files/image-1.png" alt="alt text" width="800">
+</p>
+
 
 2. **ソース** でRegion A、演習用サブスクリプション、元のリソースグループを選択します。ゾーン間DRではなくリージョン間DRを選択します。
-![alt text](./files/image-3.png)
+
+<p align="center">
+  <img src="./files/image-3.png" alt="alt text" width="800">
+</p>
+
 
 3. **仮想マシン** で自分の元VMだけを選択します。
-![alt text](./files/image-4.png)
+
+<p align="center">
+  <img src="./files/image-4.png" alt="alt text" width="800">
+</p>
+
 
 4. **レプリケーション設定** の表示・編集から、次の値を設定します。**キャッシュストレージは自動作成の候補を使わず、3.1.1で権限付与したRegion Aの作成済みストレージへ変更してください。**
-![alt text](./files/image-8.png)
+
+<p align="center">
+  <img src="./files/image-8.png" alt="alt text" width="800">
+</p>
+
    - キャッシュストレージの設定を開き、既存ストレージの選択でキャッシュ用のストレージ (Bicep出力`sourceCacheStorageAccountName`と同じ名前) を選びます。
-   ![alt text](./files/image-9.png)
+
+   <p align="center">
+     <img src="./files/image-9.png" alt="alt text" width="800">
+   </p>
+
    - 所属グループが`rg-bcdr-src-<演習ID>`、リージョンがRegion Aであることを確認し、変更を保存します。Region Bのストレージは再保護用です。
    - 自動提案されたターゲットリージョンやVNetも、そのまま採用せず演習の値に合わせます。
-![alt text](./files/image-5.png)
+
+<p align="center">
+  <img src="./files/image-5.png" alt="alt text" width="800">
+</p>
+
 
 | 項目 | 設定・確認 |
 |---|---|
@@ -85,11 +125,19 @@ Trusted LaunchのLinux VMは、VM作成画面のSite Recovery同時有効化で�
 テストフェールオーバー時はテスト用VNetを選びます。ASRが一時VMや付随リソースをどのRGに作るかは、ASR画面と実リソースの配置を確認してください。Bicepのテスト用RGにはネットワークとBastionを分けてありますが、ASRが作成する復旧VMの配置先をこのテンプレートが指定するものではありません。
 
 5. **管理** で複製ポリシーを確認します。本演習は単一VMのため、複数VMの整合性用グループを新たに構成しません。**拡張機能の設定 → 設定の更新** は **ASRに管理を許可します** を選択し、**Automationアカウント** 欄の新規作成候補を確認して **作成** を押します。これはVM内のMobilityサービス（複製エージェント）の更新を自動化するための設定で、OSやApacheの更新ではありません。作成されたAutomationアカウントの名前と所属グループを確認します。
-![alt text](./files/image-6.png)
+
+<p align="center">
+  <img src="./files/image-6.png" alt="alt text" width="800">
+</p>
+
 
 6. **確認** 画面で、キャッシュストレージがBicep出力`sourceCacheStorageAccountName`と一致していることを確認してから、**レプリケーションを有効にする** を実行します。
 7. コンテナーの **Site Recoveryジョブ** で有効化処理を、**レプリケートされたアイテム** で初期複製の進行状況を確認します。
-![alt text](./files/image-7.png)
+
+<p align="center">
+  <img src="./files/image-7.png" alt="alt text" width="800">
+</p>
+
 
 **確認結果**：自分のVMがレプリケートされたアイテムに登録され、指定したRegion Bへの初期複製が開始すること。Mobilityサービスなど必要な構成はASRの有効化処理で導入されます。
 
@@ -98,7 +146,11 @@ Trusted LaunchのLinux VMは、VM作成画面のSite Recovery同時有効化で�
 1. Recovery Servicesコンテナーの **Site Recoveryインフラストラクチャ → Azure仮想マシン → ネットワーク マッピング** を開き、Region Aの元VNetからRegion Bの復旧先VNetへのマッピングを確認します。手順3.2で復旧先ネットワークを選んだとき、対応するマッピングが自動作成されている場合があります。
 2. 反対方向（Region BからRegion A）のマッピングも確認します。再保護・フェールバック時に逆方向のネットワーク選択の既定値として使われます。
 
-![ネットワークマッピングの例](./files/image-37.png)
+
+<p align="center">
+  <img src="./files/image-37.png" alt="ネットワークマッピングの例" width="800">
+</p>
+
 
 ネットワークマッピングは、元VNetにいるVMをフェールオーバーしたときに接続する復旧先VNetの対応関係です。VNetそのものを複製したり、VNet間の接続（ピアリング、VPN、ルート、DNS、NSG）を作成したりする機能ではありません。サブネットは名前が一致すれば復旧先でも同名のものが選ばれ、なければ復旧先VNetの先頭のサブネットが既定で選ばれます。実際の復旧VMのネットワークは、レプリケートされたアイテムの **ネットワーク** 設定で個別に確認できます。マッピングの変更は既存VMのネットワーク設定を変更せず、新しく複製を有効にするVMの既定値に影響します。
 
@@ -138,9 +190,17 @@ Trusted LaunchのLinux VMは、VM作成画面のSite Recovery同時有効化で�
 > **注意：最初のレプリケーション有効化から初期複製完了までは時間がかかります。所要時間はディスクのデータ量や通信状況によって異なります。有効化ジョブの完了だけでは初期複製は完了していません。複製が正常になり、復旧ポイントが生成されるまで待ってください。**
 
 1. Portalで **Recovery Servicesコンテナー → 保護されたアイテム → レプリケートされたアイテム → 対象VM** を開きます。**概要** で初期複製の完了、レプリケーションの正常性、最新の復旧ポイントの時刻を確認します。選択可能な復旧ポイントを確認する場合は **テストフェールオーバー** の設定画面を開きます。ここでは実行せず、確認後に画面を閉じます。テストの実行は次のStepで行います。
-![alt text](./files/image-10.png)
+
+<p align="center">
+  <img src="./files/image-10.png" alt="alt text" width="800">
+</p>
+
 2. 最新の復旧ポイントの時刻が、HTMLファイルを変更した時刻より後であることを確認します。その復旧ポイントを使うと、変更後のHTMLが復旧先に反映されます。
-![alt text](./files/image-11.png)
+
+<p align="center">
+  <img src="./files/image-11.png" alt="alt text" width="800">
+</p>
+
 3. 復旧ポイントの確認ができたら、対象VMの画面で、レプリケーションの正常性・RPO（復旧ポイントの遅れ）・エージェントの状態・関連ジョブなど、気になる情報を自由に確認してみてください。この手順での記録は任意です。設定の変更やフェールオーバーの実行は行いません。
 
 **確認結果**：初期複製が完了し、ApacheとHTMLを構成した後の復旧ポイントを選択できること。

@@ -96,6 +96,7 @@ az account show --query '{Name:name,SubscriptionId:id,TenantId:tenantId,State:st
 
 1. ブラウザーで[教材リポジトリ](https://github.com/zukakosan/Azure-Infra-handson-202611)を開きます。
 2. **Code → Download ZIP** を選択します。Gitは使用しません。
+![alt text](files/image.png)
 3. ダウンロードしたZIPを右クリックし、**すべて展開**します。
 4. 展開先で、`BCDR`フォルダーが直下にあるフォルダーを開きます。ここが、以降のコマンドを実行する**リポジトリルート**です。
 

@@ -37,7 +37,7 @@ Ubuntu VM上にApacheと静的HTMLを構成し、Azure Site Recovery（ASR）で
 
 Bicepは両リージョンのネットワーク、元VM、Recovery Servicesコンテナー、キャッシュストレージなどを作成します。**Apache・HTMLの構成、ASRの複製有効化、必要なロール割り当ては行いません。** 「03」では既存のコンテナーを開き、コンテナー作成をスキップしてレプリケーション有効化から進めます。
 
-テンプレートは[infra/main.bicep](./準備/infra/main.bicep)、設定は[infra/main.bicepparam](./準備/infra/main.bicepparam)、設定例は[infra/main-sample.bicepparam](./準備/infra/main-sample.bicepparam)を参照してください。ビルド・what-if・展開コマンドは初期リソース作成手順に掲載しています。
+テンプレートは[infra/main.bicep](./準備/infra/main.bicep)、設定ファイルは[infra/main.bicepparam](./準備/infra/main.bicepparam)です。`main.bicepparam`のプレースホルダーを自分の演習IDに置き換えて使用します。ビルド・what-if・展開コマンドは初期リソース作成手順に掲載しています。
 
 ## 本編の読み順
 
@@ -63,7 +63,7 @@ Bicepは両リージョンのネットワーク、元VM、Recovery Servicesコ�
 
 ## 安全上の注意と後片付け
 
-- 自分の演習IDと専用リソースグループを使用し、本番・共有リソースを操作しないでください。
+- このBicepはハンズオン専用です。本番・共有リソースへ展開しないでください。初期環境は公開IPとHTTPを使うため、本番環境にそのまま適用できる構成ではありません。
 - 元VMの停止、コミット、再保護、削除を行う前に、対象・影響・必要な組織承認を確認します。証拠はVM外へ保存します。
 - VMへはBastion Developer経由で接続し、公開IPへSSH接続しません。演習用HTTPページには秘密情報や業務データを置かないでください。
 - 演習用パスワードは他の環境に流用せず、リポジトリへ保存しません。Bicep展開後は手順に従ってパスワードの環境変数を削除します。

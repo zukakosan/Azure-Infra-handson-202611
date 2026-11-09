@@ -87,11 +87,15 @@ az login --use-device-code
 ```powershell
 az account set --subscription '<演習用サブスクリプションID>'
 
+$env:BCDR_DEPLOYMENT_LOCATION = 'japaneast'
 $env:BCDR_ADMIN_PASSWORD = '<演習専用パスワード>'
 ```
 
+`BCDR_DEPLOYMENT_LOCATION`には、デプロイ履歴の保存先リージョンコードを設定します。例では`japaneast`を使います。VMやコンテナーの配置先はパラメータファイルの`sourceLocation`・`recoveryLocation`で指定するため、この環境変数を変えてもリソースの配置先は変わりません。
+
 パスワードは英大文字・英小文字・数字・記号を含む12～123文字にします。`main.bicepparam`の`adminPassword`は、この環境変数をBicepのsecure parameterとして読み込みます。
 
+**以降のビルド・what-if・デプロイは、環境変数を設定した同じPowerShellターミナルで実行してください。** ターミナルを開き直した場合は再設定します。
 
 ## 3. ビルドして変更内容を確認する
 
@@ -100,12 +104,12 @@ az bicep build --file '.\BCDR\handson\iaas\preparation\infra\main.bicep' --stdou
 
 az deployment sub what-if `
   --name bcdr-initial `
-  --location '<デプロイ履歴の保存先リージョン>' `
+  --location $env:BCDR_DEPLOYMENT_LOCATION `
   --template-file '.\BCDR\handson\iaas\preparation\infra\main.bicep' `
   --parameters '.\BCDR\handson\iaas\preparation\infra\main.bicepparam'
 ```
 
-`<デプロイ履歴の保存先リージョン>`を利用可能なリージョンコード（例：`japaneast`）に置き換えます。これはVMやコンテナーの配置リージョンではありません。`what-if`の結果で、演習ID、3つのリソースグループ、作成リソース、Bastion Developer、公開IPを確認します。既存リソースの変更が表示された場合は実行せず、演習IDとサブスクリプションを確認してください。
+`--location`には、手順2で設定した環境変数を使います。`what-if`の結果で、演習ID、3つのリソースグループ、作成リソース、Bastion Developer、公開IPを確認します。既存リソースの変更が表示された場合は実行せず、演習IDとサブスクリプションを確認してください。
 
 ## 4. デプロイする
 
@@ -114,11 +118,20 @@ az deployment sub what-if `
 ```powershell
 az deployment sub create `
   --name bcdr-initial `
-  --location '<デプロイ履歴の保存先リージョン>' `
+  --location $env:BCDR_DEPLOYMENT_LOCATION `
   --template-file '.\BCDR\handson\iaas\preparation\infra\main.bicep' `
   --parameters '.\BCDR\handson\iaas\preparation\infra\main.bicepparam' `
   --query properties.outputs --output json
 ```
+
+デプロイが成功したら、同じPowerShellでパスワードの環境変数を削除します。これは手元の環境変数だけを削除する操作で、VMのログインパスワードは変わりません。
+
+```powershell
+Remove-Item Env:BCDR_ADMIN_PASSWORD
+Test-Path Env:BCDR_ADMIN_PASSWORD
+```
+
+`False`が表示されれば削除済みです。デプロイに失敗した場合はエラーを確認し、再試行しない場合も環境変数を削除してください。削除後に再試行する場合はパスワードを再設定します。
 
 出力された3つのリソースグループ名、元VMのID・公開IP、Bastion ID、サブネットID、Recovery ServicesコンテナーID、両方のキャッシュストレージ名を記録します。`sourcePageUrl`はApache設定後に使います。元VMには`sourceVmPortalUrl`から開き、Azure Portalの**接続 → Bastion**で接続します。公開IPへのSSH接続はしません。出力値の確認は[01：デプロイ結果の確認](../exercises/01-verify-deployment.md)を参照してください。
 

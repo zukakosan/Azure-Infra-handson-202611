@@ -38,16 +38,35 @@ Region AのWebサーバーVMを停止し、ASRでRegion Bへ復旧します。Ap
 
 ## 2. 構成
 
-```text
-Region A                                  Region B
-元のVM ── ASRによるディスク複製 ──> 復旧ポイント
-  │                                         │
-  ├─ Apache                                └─ テストフェールオーバー
-  └─ OS管理ディスク上のindex.html           └─ テスト用VM
-                                                隔離したテスト用VNet
+```mermaid
+flowchart LR
+    Bicep["Bicepで初期環境を展開"]
 
-本編：A停止 → Bへフェールオーバー → HTML更新
-      → BからAへ再保護・フェールバック → AからBへ再保護
+    subgraph RegionA["Region A（元リージョン）"]
+        SourceVM["元VM<br/>Ubuntu・Apache・HTML"]
+        SourceCache["ASRキャッシュストレージ"]
+        RestoredVM["フェールバック後のVM"]
+    end
+
+    subgraph RegionB["Region B（復旧先）"]
+        RecoveryPoint["ASR復旧ポイント"]
+        RecoveryCache["ASRキャッシュストレージ"]
+        TestVNet["隔離したテスト用VNet"]
+        TestVM["テストVM<br/>復旧確認後に削除"]
+        FailoverVM["フェールオーバーVM<br/>HTMLを更新"]
+    end
+
+    Bicep --> SourceVM
+    Bicep --> SourceCache
+    Bicep --> RecoveryCache
+    SourceVM -->|ASRでディスクを複製| RecoveryPoint
+    SourceCache -.->|複製時に使用| RecoveryPoint
+    RecoveryCache -.->|複製時に使用| RecoveryPoint
+    RecoveryPoint -->|テストフェールオーバー| TestVM
+    TestVNet --- TestVM
+    RecoveryPoint -->|実フェールオーバー| FailoverVM
+    FailoverVM -->|再保護 B→A| RestoredVM
+    RestoredVM -->|フェールバック後に再保護 A→B| RecoveryPoint
 ```
 
 復旧先でApacheやHTMLを作り直さず、ディスクと自動起動設定の復旧を確認します。接続先はVM名・リージョン・IPで照合します。

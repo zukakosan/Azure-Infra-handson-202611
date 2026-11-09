@@ -1,6 +1,6 @@
 # Bicepによる初期リソースの作成
 
-[事前準備と確認ポイント](./00-prerequisites.md) | [全体・進捗チェック](../../../ハンズオン/01-IaaS-ASRによるDRハンズオン.md) | [次へ：ApacheとHTMLの構成](../exercises/02-configure-apache.md)
+[事前準備と確認ポイント](./00-prerequisites.md) | [全体・進捗チェック](../../../ハンズオン/01-IaaS-ASRによるDRハンズオン.md) | [次へ：デプロイ結果の確認](../exercises/01-verify-deployment.md)
 
 この手順では、Bicepでハンズオンの初期環境を作成します。まず図で作成範囲を確認し、パラメータファイルの値を設定してデプロイします。既存の手作業環境には展開せず、新しい演習IDを使ってください。
 
@@ -133,15 +133,17 @@ Test-Path Env:BCDR_ADMIN_PASSWORD
 
 `False`が表示されれば削除済みです。デプロイに失敗した場合はエラーを確認し、再試行しない場合も環境変数を削除してください。削除後に再試行する場合はパスワードを再設定します。
 
-出力された3つのリソースグループ名、元VMのID・公開IP、Bastion ID、サブネットID、Recovery ServicesコンテナーID、両方のキャッシュストレージ名を記録します。`sourcePageUrl`はApache設定後に使います。元VMには`sourceVmPortalUrl`から開き、Azure Portalの**接続 → Bastion**で接続します。公開IPへのSSH接続はしません。出力値の確認は[01：デプロイ結果の確認](../exercises/01-verify-deployment.md)を参照してください。
+出力された3つのリソースグループ名、元VMのID・公開IP、Bastion ID、サブネットID、Recovery ServicesコンテナーID、両方のキャッシュストレージ名を記録します。`sourcePageUrl`はApache設定後に開くWebページのURL、`sourceVmPortalUrl`は元VMのAzure Portal画面を開くURLです。リソースの詳細確認とBastion接続は、次の[01：デプロイ結果の確認](../exercises/01-verify-deployment.md)で行います。
 
 ## 5. 完了状態を確認して次へ進む
 
 - [ ] 元・復旧・テスト用の3つのリソースグループと、図に示したリソースが作成された。
-- [ ] 元VMへBastion Developer経由で接続できた。
+- [ ] デプロイの出力値を記録した。
 - [ ] Apache・HTMLはまだなく、ASR複製もまだ有効になっていない。
 - [ ] パスワードの環境変数を削除した。
 
-この教材はハンズオン用です。初期環境は公開IPとHTTP（TCP 80）を使用し、HTTPSは構成しません。本番環境へそのまま展開しないでください。HTTPのページは誰でも閲覧できるため、静的な演習データ以外を置かず、終了後に削除してください。VNet PeeringとAzure RBACロール割り当ても作成されません。ASR複製を有効にする前に、両方のキャッシュストレージにRecovery ServicesコンテナーのマネージドIDへ必要なロールを割り当てます。詳しくは[03：ASRの構成と初期複製](../exercises/03-configure-asr.md)を参照してください。
+> 注記：
+> - ハンズオン専用の構成です。公開IP・HTTP（TCP 80）を使用し、HTTPSは構成しません。本番環境へそのまま展開せず、公開ページには静的な演習データだけを置き、終了後に削除してください。
+> - VNet Peering・Azure RBACロール割り当ては作成しません。ASR複製の有効化前に、両方のキャッシュストレージでコンテナーのマネージドIDへ必要なロールを割り当てます（[03：ASRの構成と初期複製](../exercises/03-configure-asr.md)）。
 
-全体の進捗チェックの「01」を完了とし、[02：ApacheとHTMLの構成](../exercises/02-configure-apache.md)へ進みます。ASR演習開始後は元VM・ディスク・ネットワークが再構成されるため、このBicepを再展開してリセットしないでください。初期環境を作り直す場合は、[クリーンアップ](../exercises/08-cleanup.md)で専用環境を削除し、新しい演習IDで構築します。
+[01：デプロイ結果の確認](../exercises/01-verify-deployment.md)へ進み、リソースの確認とBastion接続を行います。「01」の完了チェックは、そのページの手順を終えてから更新してください。ASR演習開始後は元VM・ディスク・ネットワークが再構成されるため、このBicepを再展開してリセットしないでください。初期環境を作り直す場合は、[クリーンアップ](../exercises/08-cleanup.md)で専用環境を削除し、新しい演習IDで構築します。

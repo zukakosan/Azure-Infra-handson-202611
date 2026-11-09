@@ -1,6 +1,6 @@
 using './main.bicep'
 // ここに、自分用の任意の文字列を入れる
-param exerciseId = 'WRITE-YOUR-EXCERCISE-ID'
+param exerciseId = '<自分用の ID を記載>'
 
 // クォータ不足時は、sourceLocation / recoveryLocation をペアで変更する。
 // 候補（元 / 復旧先。逆方向も可）:

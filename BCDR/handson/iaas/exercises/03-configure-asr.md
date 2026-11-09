@@ -237,10 +237,8 @@ HTMLの復旧は[次のテストフェールオーバー](./04-test-failover.md)
 ```powershell
 $exerciseId = '<演習ID>'
 $subscriptionId = az account show --query id -o tsv
-if ($LASTEXITCODE -ne 0) { throw 'Subscription lookup failed.' }
 $vaultId = "/subscriptions/$subscriptionId/resourceGroups/rg-bcdr-dr-$exerciseId/providers/Microsoft.RecoveryServices/vaults/rsv-bcdr-$exerciseId"
 az rest --method get --url "https://management.azure.com$vaultId/replicationProtectedItems?api-version=2024-04-01" --query 'value[].{VM:properties.friendlyName,State:properties.protectionState,Health:properties.replicationHealth,ProgressPercent:properties.providerSpecificDetails.monitoringPercentageCompletion}' -o table
-if ($LASTEXITCODE -ne 0) { throw 'Replication status lookup failed.' }
 ```
 
 - `State`：`InitialReplicationInProgress`は初期複製中です。

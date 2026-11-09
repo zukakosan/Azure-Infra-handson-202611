@@ -29,9 +29,10 @@ Bicepはネットワーク、VM、コンテナー、キャッシュストレー�
 1. デプロイ出力の`sourceVmPortalUrl`を開きます。
 2. VMが実行中で、Region A・VM名・NIC・公開IP・サブネットNSGが想定どおりであることを確認します。
 3. **接続 → Bastion**からSKU `Developer`を選び、ユーザー名`azureuser`とBicepで設定した演習専用パスワードで接続します。公開IPへSSH接続しません。
+> ポップアップ ブロックが表示される場合には、許可してください。
 4. 接続先VM名とプライベートIPを確認します。Bastionでは同時に1接続とし、別VMへ接続するときはセッションを閉じます。
 
-VMのOS・カーネルがASR対応であることも[Trusted Launchの条件](https://learn.microsoft.com/ja-jp/azure/site-recovery/concepts-trusted-vm)で確認します。Secure BootとvTPMは無効にしません。VM作成画面からASRを有効にせず、[03：ASRの構成](./03-configure-asr.md)で設定します。
+<!-- VMのOS・カーネルがASR対応であることも[Trusted Launchの条件](https://learn.microsoft.com/ja-jp/azure/site-recovery/concepts-trusted-vm)で確認します。Secure BootとvTPMは無効にしません。VM作成画面からASRを有効にせず、[03：ASRの構成](./03-configure-asr.md)で設定します。 -->
 
 **確認結果**：Bicepで作成した元VMへBastion Developerから接続でき、Region A・VM名・ネットワークを確認できること。
 

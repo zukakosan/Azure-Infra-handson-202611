@@ -64,7 +64,9 @@
 
 #### 3.2 Azure VMのレプリケーションを有効にする
 
-Trusted LaunchのLinux VMは、VM作成画面のSite Recovery同時有効化ではなく、以下のコンテナーからの手順を使います。Ubuntu 22.04と実際のカーネルが[サポート対象](https://learn.microsoft.com/ja-jp/azure/site-recovery/concepts-trusted-vm)であることを確認します。ASRはSecure Boot・vTPM設定を保持しますが、ブート整合性監視の状態は複製しません。
+Trusted LaunchのLinux VMは、VM作成画面のSite Recovery同時有効化ではなく、以下のコンテナーからの手順を使います。
+> - Ubuntu 22.04と実際のカーネルが[サポート対象](https://learn.microsoft.com/ja-jp/azure/site-recovery/concepts-trusted-vm)であることを確認します。
+> - ASRはSecure Boot・vTPM設定を保持しますが、ブート整合性監視の状態は複製しません。
 
 1. コンテナーの **Site Recovery** を開き、**Azure仮想マシン → レプリケーションを有効にする（Enable replication）** を選択します。
 
@@ -92,37 +94,62 @@ Trusted LaunchのLinux VMは、VM作成画面のSite Recovery同時有効化で�
 </p>
 
 
-4. **レプリケーション設定** の表示・編集から、次の値を設定します。**キャッシュストレージは自動作成の候補を使わず、3.1.1で権限付与したRegion Aの作成済みストレージへ変更してください。**
+4. **レプリケーション設定** で、以下の各パートを順に設定します。自動提案された値をそのまま使わず、自分の演習環境に合わせてください。
 
-<p align="center">
-  <img src="./files/image-8.png" alt="alt text" width="800">
-</p>
+##### 4.1 場所およびリソースグループ
 
-   - キャッシュストレージの設定を開き、既存ストレージの選択でキャッシュ用のストレージ (Bicep出力`sourceCacheStorageAccountName`と同じ名前) を選びます。
+画面上部の **場所およびリソースグループ** で、復旧先を指定します。
 
-   <p align="center">
-     <img src="./files/image-9.png" alt="alt text" width="800">
-   </p>
+| 項目 | 設定・確認 |
+|---|---|
+| ターゲットの場所 | Region B |
+| ターゲットサブスクリプション | 演習用サブスクリプション |
+| ターゲットリソースグループ | 作成済みの`rg-bcdr-dr-<演習ID>` |
 
-   - 所属グループが`rg-bcdr-src-<演習ID>`、リージョンがRegion Aであることを確認し、変更を保存します。Region Bのストレージは再保護用です。
-   - 自動提案されたターゲットリージョンやVNetも、そのまま採用せず演習の値に合わせます。
+##### 4.2 ネットワーク
+
+続いて **ネットワーク** で、Region BのDR用グループにある作成済みVNetを選択します。自動作成候補や元用（`src`）・テスト用（`test`）VNetは選びません。
+
+| 項目 | 設定・確認 |
+|---|---|
+| フェールオーバー仮想ネットワーク | `vnet-bcdr-dr-<演習ID>` |
+| フェールオーバーサブネット | `subnet-web` |
 
 <p align="center">
   <img src="./files/image-5.png" alt="alt text" width="800">
 </p>
 
+テスト用VNetはここでは選択せず、テストフェールオーバー時に指定します。ASRが一時VMや付随リソースをどのRGに作るかは、ASR画面と実リソースの配置を確認してください。Bicepのテスト用RGにはネットワークとBastionを分けてありますが、ASRが作成する復旧VMの配置先をこのテンプレートが指定するものではありません。
+
+##### 4.3 ストレージ
+
+**ストレージ構成の表示／編集** を開きます。
+
+<p align="center">
+  <img src="./files/image-8.png" alt="alt text" width="800">
+</p>
+
+開いた設定画面で、複製対象ディスクとキャッシュストレージを設定します。**キャッシュストレージは自動作成候補を使わず、3.1.1で権限付与したRegion Aの既存ストレージを選んでください。**
 
 | 項目 | 設定・確認 |
 |---|---|
-| ターゲットリージョン／グループ | Region B／DR用グループ（`rg-bcdr-dr-<演習ID>`） |
-| ターゲットVNet／サブネット | 通常復旧先VNet／`subnet-web`。テスト専用VNetは後のテスト時に指定。テスト用VNetはテスト用RGに分離 |
+| レプリケーション用にディスクを含める | HTMLとApacheがある元のOS管理ディスクを含める |
+| キャッシュストレージ | Bicep出力`sourceCacheStorageAccountName`と同じ名前。所属グループは`rg-bcdr-src-<演習ID>`、リージョンはRegion A |
+| VMのチャーン（データ変更率） | 通常の変更率（Normal Churn／ノーマル チャーン） |
 
-| ターゲットVMサイズ | 両リージョンで確認したサイズ |
-| 複製対象ディスク | HTMLとApacheがある元のOS管理ディスク |
-| キャッシュストレージ | 3.1.1で権限付与したRegion Aの既存ストレージ（Bicep出力`sourceCacheStorageAccountName`）を選択。自動作成は使わず、名前・グループ・リージョンを確認 |
-| データ変更率 | 本演習では通常の変更率（Normal Churn） |
+<p align="center">
+  <img src="./files/image-9.png" alt="alt text" width="800">
+</p>
 
-テストフェールオーバー時はテスト用VNetを選びます。ASRが一時VMや付随リソースをどのRGに作るかは、ASR画面と実リソースの配置を確認してください。Bicepのテスト用RGにはネットワークとBastionを分けてありますが、ASRが作成する復旧VMの配置先をこのテンプレートが指定するものではありません。
+設定を確認して変更を保存し、レプリケーション設定画面へ戻ります。Region Bのキャッシュストレージは、後の逆方向の再保護用です。
+
+##### 4.4 ターゲットVMサイズ
+
+ターゲットVMサイズの設定も確認します。
+
+| 項目 | 設定・確認 |
+|---|---|
+| ターゲットVMサイズ | 両リージョンでサービス対応・クォータ・容量を確認したサイズ |
 
 5. **管理** で複製ポリシーを確認します。本演習は単一VMのため、複数VMの整合性用グループを新たに構成しません。**拡張機能の設定 → 設定の更新** は **ASRに管理を許可します** を選択し、**Automationアカウント** 欄の新規作成候補を確認して **作成** を押します。これはVM内のMobilityサービス（複製エージェント）の更新を自動化するための設定で、OSやApacheの更新ではありません。作成されたAutomationアカウントの名前と所属グループを確認します。
 
@@ -131,7 +158,7 @@ Trusted LaunchのLinux VMは、VM作成画面のSite Recovery同時有効化で�
 </p>
 
 
-6. **確認** 画面で、キャッシュストレージがBicep出力`sourceCacheStorageAccountName`と一致していることを確認してから、**レプリケーションを有効にする** を実行します。
+6. **確認** 画面で、ターゲットがRegion Bの`rg-bcdr-dr-<演習ID>`・`vnet-bcdr-dr-<演習ID>`・`subnet-web`であることと、キャッシュストレージがBicep出力`sourceCacheStorageAccountName`と一致していることを確認してから、**レプリケーションを有効にする** を実行します。
 7. コンテナーの **Site Recoveryジョブ** で有効化処理を、**レプリケートされたアイテム** で初期複製の進行状況を確認します。
 
 <p align="center">

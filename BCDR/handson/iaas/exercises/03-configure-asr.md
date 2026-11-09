@@ -15,7 +15,10 @@
 [Bicepによる初期リソースの作成](../preparation/00-create-initial-resources.md)を完了していることを前提とします。コンテナー・両リージョンのキャッシュストレージは作成済みですが、アクセス権限の付与とASRの複製有効化はBicepに含まれません。
 
 1. Portalで、Bicep出力`recoveryVaultId`に対応するRecovery Servicesコンテナーを開きます。
-2. 名前が`rsv-bcdr-<演習ID>`、所属グループが`rg-bcdr-dr-<演習ID>`、リージョンがRegion Bであることを確認し、次の権限付与へ進みます。
+2. 名前が`rsv-bcdr-<演習ID>`、所属グループが`rg-bcdr-dr-<演習ID>`、リージョンがRegion Bであることを確認します。
+3. コンテナーの **ID（Identity）→ システム割り当て** を開き、**状態：オン** を確認します。**オフの場合はオンに変更し、保存を押して、確認画面が表示された場合は承認します。**
+4. 保存が完了し、状態が **オン**、**オブジェクト（プリンシパル）ID** が表示されていることを確認します。このマネージドIDを、次のストレージへの権限付与先にします。
+![alt text](files/image-40.png)
 
 #### 3.1.1 キャッシュストレージとアクセス権限を準備する
 
@@ -29,8 +32,7 @@
 | B→Aの再保護用 | Bicep出力`recoveryCacheStorageAccountName` | `rg-bcdr-dr-<演習ID>` | Region B |
 
 1. Bicep出力`sourceCacheStorageAccountName`（Region Aの元RG）と`recoveryCacheStorageAccountName`（Region BのDR用RG）のストレージを確認します。Bicepで**Standard・LRS・StorageV2**、HTTPSのみ・最小TLS 1.2、匿名Blobアクセス・共有キーアクセス無効として作成済みです。
-2. Recovery Servicesコンテナーの **ID（Identity）** で、**システム割り当て → 状態：オン** を確認します。Bicepで有効化済みのこのIDを、以降の権限付与先にします。
-3. **両方のストレージそれぞれ**の **アクセス制御（IAM）→ 追加 → ロールの割り当ての追加** から、以下の2つのロールをコンテナーのマネージドIDへ付与します。割り当て先は **マネージドID** とし、自分のユーザーやAutomationアカウントのIDを選ばないでください。
+2. **両方のストレージそれぞれ**の **アクセス制御（IAM）→ 追加 → ロールの割り当ての追加** から、以下の2つのロールを3.1で確認・有効化したコンテナーのマネージドIDへ付与します。割り当て先は **マネージドID** とし、自分のユーザーやAutomationアカウントのIDを選ばないでください。
 
    - **ロール** タブで下表のロールを1つ選び、**次へ** を押します。
    - **メンバー** タブで **アクセスの割り当て先：マネージドID → メンバーを選択する** を開きます。
@@ -41,10 +43,12 @@
    |---|---|
    | **共同作成者（Contributor）** | 対象のストレージアカウントのみ |
    | **ストレージ BLOB データ共同作成者（Storage Blob Data Contributor）** | 対象のストレージアカウントのみ |
+![alt text](files/image-41.png)
+![alt text](files/image-42.png)
 
-参考：[ASRで使用するストレージへのアクセス権限（Microsoft Learn）](https://learn.microsoft.com/azure/site-recovery/site-recovery-faq#security)
+> 参考：[ASRで使用するストレージへのアクセス権限（Microsoft Learn）](https://learn.microsoft.com/azure/site-recovery/site-recovery-faq#security)
 
-4. **ロールの割り当て**で2つのロールと付与先を確認し、反映を待ちます。ストレージ名・リージョン・IDを記録します。権限がない場合はサブスクリプション管理者へ割り当てを依頼します。
+3. **ロールの割り当て**で2つのロールと付与先を確認し、反映を待ちます。ストレージ名・リージョン・IDを記録します。権限がない場合はサブスクリプション管理者へ割り当てを依頼します。
 
 #### 3.2 Azure VMのレプリケーションを有効にする
 

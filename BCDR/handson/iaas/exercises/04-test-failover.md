@@ -69,11 +69,15 @@ cat /var/www/html/index.html &&
 curl --fail --silent --show-error --connect-timeout 5 --max-time 15 http://127.0.0.1/
 ```
 
+<p align="center">
+  <img src="files/image-49.png" alt="alt text" width="800">
+</p>
+
 **確認結果**：Apacheが自動起動し、HTMLマーカー（`ASR Web Recovery Exercise`）が元の記録と一致すること。
 
 ### 5.2 利用者の接続経路から表示を確認する
 
-1. 参加者のブラウザーで`http://<テスト用VMの公開IP>/`を開きます。
+1. テスト用 VM の概要画面から、パブリック IP を確認し、参加者のブラウザーで`http://<テスト用VMの公開IP>/`を開きます。
 2. 元のURLではなくテスト用VMのURLであることを確認し、HTMLマーカーを照合します。キャッシュが疑わしい場合は強制再読み込みと実リクエストを確認します。
 3. 5秒以上の間隔で3回連続して正常表示を確認し、時刻と確認場所を記録します。
 4. 元のVMのページも引き続き表示できることを確認します。

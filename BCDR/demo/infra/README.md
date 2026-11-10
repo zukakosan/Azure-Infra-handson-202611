@@ -4,10 +4,10 @@ ASRとは独立した講師用環境を、東日本リージョンに作成し�
 
 | 配置先 | 作成するもの |
 |---|---|
-| `rg-backup-demo-source-<id>` | Ubuntu VM 1台、Apache・正常HTML、VNet・NSG・公開IP・NIC・Bastion Developer、Recovery Servicesコンテナー、バックアップポリシー・保護設定 |
+| `rg-backup-demo-source-<id>` | Ubuntu VM 1台、VNet・NSG・公開IP・NIC・Bastion Developer、Recovery Servicesコンテナー、バックアップポリシー・保護設定 |
 | `rg-backup-demo-restore-<id>` | 復元先VNet・NSG・Bastion Developer、ステージングストレージ、復元VM用公開IP 2個、復元用ロール割り当て |
 
-**復元VMと変更前・変更後の復旧ポイントは、デプロイ後に手動で作成します。**
+**Apache・正常HTMLの構成、変更前・変更後のバックアップ取得、復元VMの作成は、デプロイ後に手動で実施します。**
 
 ## 前提
 
@@ -54,9 +54,12 @@ finally {
 
 ## 3. デモ開始までの準備
 
-1. 出力の`sourcePageUrl`をブラウザーで開き、正常HTML（`backup-demo-good-v1`）を確認します。OS接続はBastionを使用し、既定ユーザー名は`azureuser`です。
-2. 出力の`vaultName`のバックアップ項目から元VMの「今すぐバックアップ」を実行し、正常状態の復旧ポイント取得完了を確認します。**保護設定済みでも、バックアップ取得完了とは限りません。**
-3. [講師デモ手順書](../01-Azure-Backupによる別VMへの復元.md)に従い、HTML変更、変更後のバックアップ取得、事前復元を実施します。
+1. 出力の`sourceVmPortalUrl`から元VMを開き、Bastionで接続します。既定ユーザー名は`azureuser`です。
+2. [Apacheと正常HTMLの構成手順](../01-Azure-Backupによる別VMへの復元.md#42-apacheと正常なhtmlを構成する)をVM内で実行し、出力の`sourcePageUrl`をブラウザーで開いて`backup-demo-good-v1`を確認します。
+3. 出力の`vaultName`のバックアップ項目から元VMの「今すぐバックアップ」を実行し、正常状態の復旧ポイント取得完了を確認します。**保護設定済みでも、バックアップ取得完了とは限りません。Apache構成前の復旧ポイントはデモに使いません。**
+4. [講師デモ手順書](../01-Azure-Backupによる別VMへの復元.md)に従い、HTML変更、変更後のバックアップ取得、事前復元を実施します。
+
+旧版の自動インストールで失敗した環境には、再デプロイだけでは`setup-backup-demo-web`拡張機能が残ります。必要なエラーログを記録し、元VMの **拡張機能とアプリケーション** から該当拡張機能を削除してから、手動構成を進めてください。VMの作り直しは不要です。
 
 復元には出力の`restoreResourceGroupName`・`restoreVnetId`・`restoreSubnetId`と、必要に応じて`stagingStorageAccountName`を使用し、認証はコンテナーの**システム割り当てマネージドID**を選択します。
 

@@ -124,22 +124,6 @@ resource vm 'Microsoft.Compute/virtualMachines@2024-07-01' = {
   }
 }
 
-resource webSetup 'Microsoft.Compute/virtualMachines/extensions@2024-07-01' = {
-  parent: vm
-  name: 'setup-backup-demo-web'
-  location: location
-  tags: tags
-  properties: {
-    publisher: 'Microsoft.Azure.Extensions'
-    type: 'CustomScript'
-    typeHandlerVersion: '2.1'
-    autoUpgradeMinorVersion: true
-    protectedSettings: {
-      script: base64(loadTextContent('../scripts/setup-web.sh'))
-    }
-  }
-}
-
 output vmId string = vm.id
 output vmName string = vm.name
 output publicIpAddress string = publicIp.properties.ipAddress

@@ -7,7 +7,7 @@ param demoId string
 @description('Protected VM name in this resource group.')
 param vmName string
 
-@description('Protected VM resource ID. The VM module must finish its web setup before protection is enabled.')
+@description('Protected VM resource ID. Configure Apache manually after deployment, before taking the demo recovery point.')
 param vmId string
 
 @description('Resource tags.')

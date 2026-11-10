@@ -1,6 +1,6 @@
 # IaaS 補足：トラブルシューティング
 
-[全体・進捗チェック](../../../ハンズオン/01-IaaS-ASRによるDRハンズオン.md) | [クリーンアップ](./08-cleanup.md)
+[ハンズオンの進め方](../README.md) | [クリーンアップ](./08-cleanup.md)
 
 演習中に困ったときに参照してください。
 
@@ -89,4 +89,4 @@ sudo journalctl -u apache2 --no-pager -n 50
 - [Microsoft Learn：フェールオーバー後の Azure VM を再保護する](https://learn.microsoft.com/ja-jp/azure/site-recovery/azure-to-azure-how-to-reprotect)
 - [Microsoft Learn：Recovery Services コンテナーを削除する](https://learn.microsoft.com/ja-jp/azure/backup/backup-azure-delete-vault)
 
-[全体へ戻る](../../../ハンズオン/01-IaaS-ASRによるDRハンズオン.md)
+[ハンズオンの進め方へ](../README.md)

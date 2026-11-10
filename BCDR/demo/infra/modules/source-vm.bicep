@@ -116,7 +116,6 @@ resource vm 'Microsoft.Compute/virtualMachines@2024-07-01' = {
     }
     securityProfile: {
       securityType: 'TrustedLaunch'
-      encryptionAtHost: true
       uefiSettings: {
         secureBootEnabled: true
         vTpmEnabled: true

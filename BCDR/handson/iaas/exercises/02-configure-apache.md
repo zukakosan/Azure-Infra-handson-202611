@@ -1,6 +1,6 @@
 # IaaS 02：Apache と HTML の構成
 
-[前へ](./01-verify-deployment.md) | [全体・進捗チェック](../../../ハンズオン/01-IaaS-ASRによるDRハンズオン.md) | [次へ](./03-configure-asr.md)
+[前へ](./01-verify-deployment.md) | [ハンズオンの進め方](../README.md) | [次へ](./03-configure-asr.md)
 
 > 現在位置：2 / 8。このページの到達点：Web ページが表示され、演習用の HTML マーカーを確認できる。
 
@@ -127,11 +127,9 @@ curl --fail --silent --show-error --connect-timeout 5 --max-time 15 http://127.0
 
 既定の「Apache2 Ubuntu Default Page」が残っている場合は、配置先とブラウザーキャッシュを確認します。
 
-## このページの完了チェック
+## 次へ進む前の確認
 
-- [ ] Apache のインストールと自動起動設定を完了した。
-- [ ] HTML の表示を確認し、HTML マーカーと時刻を記録した。
+- Apache のインストールと自動起動設定を完了した。
+- HTML の表示を確認し、HTML マーカーと時刻を記録した。
 
-完了したら[全体ページ](../../../ハンズオン/01-IaaS-ASRによるDRハンズオン.md)の対応するチェックを更新します。未完了の場合は進捗メモに停止箇所と理由を残してください。
-
-[前へ](./01-verify-deployment.md) | [全体・進捗チェック](../../../ハンズオン/01-IaaS-ASRによるDRハンズオン.md) | [次へ](./03-configure-asr.md)
+[前へ](./01-verify-deployment.md) | [ハンズオンの進め方](../README.md) | [次へ](./03-configure-asr.md)

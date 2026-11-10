@@ -1,6 +1,6 @@
 # IaaS 01：Bicep デプロイ結果の確認
 
-[前へ](../../../ハンズオン/01-IaaS-ASRによるDRハンズオン.md) | [全体・進捗チェック](../../../ハンズオン/01-IaaS-ASRによるDRハンズオン.md) | [次へ](./02-configure-apache.md)
+[前へ](../preparation/00-create-initial-resources.md) | [ハンズオンの進め方](../README.md) | [次へ](./02-configure-apache.md)
 
 > 現在位置：1 / 8。このページの到達点：Bicep で作成した元 VM へ Bastion Developer 経由でログインできる。
 
@@ -50,11 +50,9 @@ Bicep はネットワーク、VM、コンテナー、キャッシュストレー
 
 **確認結果**：Bicep で作成した元 VM へ Bastion Developer から接続でき、Region A・VM 名・ネットワークを確認できること。
 
-## このページの完了チェック
+## 次へ進む前の確認
 
-- [ ] 事前準備で作成した 3 つのリソースグループと、VNet、NSG、Bastion、コンテナー、キャッシュストレージ、元 VM を確認した。
-- [ ] 元 VM・ネットワークを確認し、Bastion Developer 経由でパスワードログインできた。
+- 事前準備で作成した 3 つのリソースグループと、VNet、NSG、Bastion、コンテナー、キャッシュストレージ、元 VM を確認した。
+- 元 VM・ネットワークを確認し、Bastion Developer 経由でパスワードログインできた。
 
-完了したら[全体ページ](../../../ハンズオン/01-IaaS-ASRによるDRハンズオン.md)を更新し、[02：Apache と HTML の構成](./02-configure-apache.md)へ進みます。
-
-[前へ](../../../ハンズオン/01-IaaS-ASRによるDRハンズオン.md) | [全体・進捗チェック](../../../ハンズオン/01-IaaS-ASRによるDRハンズオン.md) | [次へ](./02-configure-apache.md)
+[前へ](../preparation/00-create-initial-resources.md) | [ハンズオンの進め方](../README.md) | [次へ](./02-configure-apache.md)

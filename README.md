@@ -10,7 +10,6 @@ Azureのネットワーク設計・トラブルシューティングと、事業
 |---|---|---|
 | Network | Hub-Spoke、UDR、Azure Firewall、BGP、疎通障害の切り分け | [NWハンズオンの進め方](./Network/ハンズオン/00-NWハンズオンの進め方.md) |
 | BCDR / IaaS | Azure Site Recovery（ASR）によるVMの複製、フェールオーバー、再保護、フェールバック | [IaaSハンズオン README](./BCDR/handson/iaas/README.md) |
-| BCDR / PaaS | Azure SQL DatabaseのFailover Groupによる計画切り替えとデータ確認 | [PaaSハンズオンの全体手順](./BCDR/ハンズオン/02-PaaS-Azure-SQLによるDRハンズオン.md) |
 
 **BCDR / IaaSの参加者は、開催前に[参加者用の事前準備](./BCDR/handson/iaas/preparation/00-participant-preparation.md)のツール準備とAzureへのログイン確認を済ませてください。** 当日は教材を取得し、Bicepで初期環境を展開します。
 
@@ -33,18 +32,16 @@ Networkは事前展開済み環境で進めます。BGPは講師デモ専用で�
 - [ワークショップアジェンダ](./BCDR/azure-dr-workshop-agenda.md)
 - [座学のゴール](./BCDR/座学/00-BCDR座学のゴール.md) / [座学資料](./BCDR/座学/) / [スライドの案内](./BCDR/座学/スライド/README.md)
 - [IaaSハンズオンの読み順・事前準備](./BCDR/handson/iaas/README.md)
-- [IaaSハンズオンの全体・進捗チェック](./BCDR/ハンズオン/01-IaaS-ASRによるDRハンズオン.md)
-- [PaaSハンズオンの全体手順](./BCDR/ハンズオン/02-PaaS-Azure-SQLによるDRハンズオン.md) / [各ステップ](./BCDR/ハンズオン/PaaS/)
-- [Azure Backupによる別VMへの復元デモ](./BCDR/デモ/01-Azure-Backupによる別VMへの復元.md)
+- [Azure Backupによる別VMへの復元デモ](./BCDR/demo/01-Azure-Backupによる別VMへの復元.md)
 
-BCDRのアジェンダと一部の手順には検討段階の内容が含まれます。実施範囲・リージョン・時間配分は講師の案内と各ハンズオンの全体手順で確認してください。IaaSの初期複製・再保護などの待ち時間は、操作時間とは別に必要です。
+BCDRのハンズオンはIaaSを対象とし、PaaSのDRは座学で扱います。アジェンダと一部の手順には検討段階の内容が含まれるため、実施範囲・リージョン・時間配分は講師の案内とIaaSハンズオンのREADMEで確認してください。IaaSの初期複製・再保護などの待ち時間は、操作時間とは別に必要です。
 
 ## リポジトリの構成
 
 | フォルダー | 内容 |
 |---|---|
 | [Network](./Network/) | ネットワークのアジェンダ、座学、ハンズオン、環境構築用Bicep |
-| [BCDR](./BCDR/) | BCDRのアジェンダ、座学、IaaS・PaaSハンズオン、復元デモ |
+| [BCDR](./BCDR/) | BCDRのアジェンダ、座学、IaaSハンズオン、復元デモ |
 | [template](./template/) | スライド作成用のデザイン資料・生成スクリプト |
 
 ## 演習時の注意

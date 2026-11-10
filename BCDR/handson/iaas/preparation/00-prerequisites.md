@@ -1,6 +1,6 @@
 # BCDR ハンズオン：事前準備と確認ポイント
 
-[全体・進捗チェック](../../../ハンズオン/01-IaaS-ASRによるDRハンズオン.md) | [次へ：Bicepによる初期リソースの作成](./00-create-initial-resources.md)
+[ハンズオンの進め方](../README.md) | [次へ：Bicepによる初期リソースの作成](./00-create-initial-resources.md)
 
 初期リソースはBicepで作成します。事前準備では、参加者のWindows PCに必要なツールを用意し、演習用Azure環境を確認します。
 

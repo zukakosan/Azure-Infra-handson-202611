@@ -8,10 +8,6 @@ param demoId string
 @description('Region supporting Bastion Developer, the Ubuntu image, VM size, and Azure Backup.')
 param location string = 'japaneast'
 
-@description('Lecturer public IPv4 address or narrow IPv4 CIDR allowed to access HTTP. Do not use a wildcard or 0.0.0.0/0.')
-@minLength(7)
-param lecturerHttpSource string
-
 @description('Ubuntu administrator password. Supply securely via environment variable; never commit it.')
 @secure()
 @minLength(12)
@@ -55,7 +51,6 @@ module sourceNetwork './modules/network.bicep' = {
     suffix: 'source-${demoId}'
     addressPrefix: '10.40.0.0/16'
     subnetPrefix: '10.40.1.0/24'
-    lecturerHttpSource: lecturerHttpSource
     tags: tags
   }
 }
@@ -68,7 +63,6 @@ module restoreNetwork './modules/network.bicep' = {
     suffix: 'restore-${demoId}'
     addressPrefix: '10.50.0.0/16'
     subnetPrefix: '10.50.1.0/24'
-    lecturerHttpSource: lecturerHttpSource
     tags: tags
   }
 }

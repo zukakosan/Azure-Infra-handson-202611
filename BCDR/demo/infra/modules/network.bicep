@@ -10,9 +10,6 @@ param addressPrefix string
 @description('Web subnet IPv4 address prefix.')
 param subnetPrefix string
 
-@description('Lecturer public IPv4 address or narrow IPv4 CIDR.')
-param lecturerHttpSource string
-
 @description('Resource tags.')
 param tags object
 
@@ -24,7 +21,7 @@ resource nsg 'Microsoft.Network/networkSecurityGroups@2024-05-01' = {
     securityRules: [for rule in [
       { name: 'Allow-Ssh-From-VirtualNetwork', priority: 100, port: '22', source: 'VirtualNetwork', access: 'Allow' }
       { name: 'Allow-Ssh-From-Platform', priority: 110, port: '22', source: '168.63.129.16/32', access: 'Allow' }
-      { name: 'Allow-Http-From-Lecturer', priority: 120, port: '80', source: lecturerHttpSource, access: 'Allow' }
+      { name: 'Allow-Http-From-Any', priority: 120, port: '80', source: '*', access: 'Allow' }
       { name: 'Deny-Other-Inbound', priority: 130, port: '*', source: '*', access: 'Deny' }
     ]: {
       name: rule.name

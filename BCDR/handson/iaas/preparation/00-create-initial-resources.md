@@ -89,7 +89,10 @@ az account set --subscription '<演習用サブスクリプションID>'
 
 $env:BCDR_DEPLOYMENT_LOCATION = 'japaneast'
 $env:BCDR_ADMIN_PASSWORD = '<演習専用パスワード>'
+$deploymentName = "bcdr-initial-$([guid]::NewGuid().ToString('N'))"
 ```
+
+`$deploymentName`には、参加者間で衝突しないようランダムな識別子を付けたデプロイ名を設定します。任意の名前に変更する場合も、同じサブスクリプション内で他の参加者と重複しない名前にしてください。これはデプロイ履歴の名前であり、作成するリソース名は変わりません。環境を分けるための演習IDも参加者ごとに変えてください。
 
 `BCDR_DEPLOYMENT_LOCATION`には、デプロイ履歴の保存先リージョンコードを設定します。例では`japaneast`を使います。VMやコンテナーの配置先はパラメータファイルの`sourceLocation`・`recoveryLocation`で指定するため、この環境変数を変えてもリソースの配置先は変わりません。
 
@@ -103,7 +106,7 @@ $env:BCDR_ADMIN_PASSWORD = '<演習専用パスワード>'
 az bicep build --file '.\BCDR\handson\iaas\preparation\infra\main.bicep' --stdout | Out-Null
 
 az deployment sub what-if `
-  --name bcdr-initial `
+  --name $deploymentName `
   --location $env:BCDR_DEPLOYMENT_LOCATION `
   --template-file '.\BCDR\handson\iaas\preparation\infra\main.bicep' `
   --parameters '.\BCDR\handson\iaas\preparation\infra\main.bicepparam'
@@ -117,7 +120,7 @@ az deployment sub what-if `
 
 ```powershell
 az deployment sub create `
-  --name bcdr-initial `
+  --name $deploymentName `
   --location $env:BCDR_DEPLOYMENT_LOCATION `
   --template-file '.\BCDR\handson\iaas\preparation\infra\main.bicep' `
   --parameters '.\BCDR\handson\iaas\preparation\infra\main.bicepparam' `

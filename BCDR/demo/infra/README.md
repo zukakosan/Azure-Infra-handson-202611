@@ -54,14 +54,84 @@ finally {
 
 ## 3. デモ開始までの準備
 
-1. 出力の`sourceVmPortalUrl`から元VMを開き、Bastionで接続します。既定ユーザー名は`azureuser`です。
-2. [Apacheと正常HTMLの構成手順](../01-Azure-Backupによる別VMへの復元.md#42-apacheと正常なhtmlを構成する)をVM内で実行し、出力の`sourcePageUrl`をブラウザーで開いて`backup-demo-good-v1`を確認します。
-3. 出力の`vaultName`のバックアップ項目から元VMの「今すぐバックアップ」を実行し、正常状態の復旧ポイント取得完了を確認します。**保護設定済みでも、バックアップ取得完了とは限りません。Apache構成前の復旧ポイントはデモに使いません。**
-4. [講師デモ手順書](../01-Azure-Backupによる別VMへの復元.md)に従い、HTML変更、変更後のバックアップ取得、事前復元を実施します。
+### 3.1 元VMへ接続する
 
-旧版の自動インストールで失敗した環境には、再デプロイだけでは`setup-backup-demo-web`拡張機能が残ります。必要なエラーログを記録し、元VMの **拡張機能とアプリケーション** から該当拡張機能を削除してから、手動構成を進めてください。VMの作り直しは不要です。
+出力の`sourceVmPortalUrl`から元VMを開き、**接続 → Bastion** でログインします。既定ユーザー名は`azureuser`、パスワードはデプロイ時に入力した値です。
 
-復元には出力の`restoreResourceGroupName`・`restoreVnetId`・`restoreSubnetId`と、必要に応じて`stagingStorageAccountName`を使用し、認証はコンテナーの**システム割り当てマネージドID**を選択します。
+以降の`bash`コマンドは、**Bastionで接続した元Ubuntu VM内**で、ブロックごとに実行します。講師端末のPowerShellや復元VMでは実行しません。エラーが出た場合は原因を解消してから次へ進みます。
+
+### 3.2 Apacheをインストールする
+
+パッケージ一覧を更新し、Apacheと確認用のcurlをインストールします。
+
+```bash
+sudo apt-get update &&
+sudo apt-get install -y apache2 curl
+```
+
+設定を確認し、Apacheの起動と自動起動を有効にします。
+
+```bash
+sudo apache2ctl configtest &&
+sudo systemctl enable --now apache2 &&
+systemctl is-enabled apache2 &&
+systemctl is-active apache2
+```
+
+`Syntax OK`、`enabled`、`active`が表示されることを確認します。
+
+### 3.3 正常状態のHTMLを配置する
+
+デモ専用の既定ページを、復元確認用の正常なHTMLで上書きします。
+
+```bash
+printf '%s\n' '<!doctype html>' '<html lang="en">' \
+  '<head><meta charset="utf-8"><title>Azure Backup Demo</title></head>' \
+  '<body><h1>Azure Backup Demo</h1>' \
+  '<p>Recovery marker: backup-demo-good-v1</p></body></html>' \
+  > /tmp/backup-demo-good.html &&
+sudo install -m 644 /tmp/backup-demo-good.html /var/www/html/index.html &&
+sync &&
+sha256sum /var/www/html/index.html &&
+date -u +%Y-%m-%dT%H:%M:%SZ
+```
+
+HTMLのSHA-256とUTC時刻をVM外に控え、VM内でHTTP応答を確認します。
+
+```bash
+curl --fail --silent --show-error --connect-timeout 5 --max-time 15 http://127.0.0.1/
+```
+
+講師端末のブラウザーで出力の`sourcePageUrl`を開き、`backup-demo-good-v1`が表示されることを確認します。
+
+### 3.4 正常状態をバックアップする
+
+1. Portalで出力の`vaultName`のRSVを開き、**バックアップ項目 → Azure Virtual Machine → 元VM** を選択します。バックアップ保護とポリシーはBicepで設定済みのため、再登録は不要です。
+2. **今すぐバックアップ** を実行し、保持期限はデモ実施日より後に設定します。
+3. **バックアップジョブ** で完了を確認し、復旧ポイントの時刻を控えます。**Apache・正常HTMLの構成後に取得したポイントを使います。**
+4. [講師デモ手順書のHTML変更](../01-Azure-Backupによる別VMへの復元.md#44-元vmのhtmlを変更し変更後のポイントも取得する)へ進み、変更後のバックアップ取得、事前復元を実施します。
+
+保護設定だけではバックアップ取得完了ではありません。自動実行は日本時間02:00のため、ここでは手動で取得します。
+
+> 旧版の自動インストールで失敗した環境を使う場合：必要なエラーログを記録し、元VMの **拡張機能とアプリケーション** から残っている`setup-backup-demo-web`を削除してから手動構成します。再デプロイだけでは該当拡張機能は削除されません。
+
+## 4. 復元と後片付け
+
+RSVの **バックアップ項目 → Azure Virtual Machine → 元VM → VMの復元** を開き、正常状態の復旧ポイントから **新しい仮想マシンを作成** します。元VMを置き換える方式は選びません。
+
+復元画面では、Bicepのデプロイ実行結果に表示された各項目の`value`を使い、次のように設定します。
+
+| 復元画面の設定項目 | 選択する値 |
+|---|---|
+| リソースグループ | `restoreResourceGroupName`に表示された名前 |
+| 仮想ネットワーク | `restoreVnetId`が示すVNet |
+| サブネット | `restoreSubnetId`が示すサブネット |
+| ステージング場所（表示された場合） | `stagingStorageAccountName`に表示されたストレージアカウント |
+| 復元に使用する認証方式 | **システム割り当てマネージドID** |
+
+`restoreVnetId`と`restoreSubnetId`はリソースIDです。Portalの選択欄にはID全体を貼り付けず、それぞれIDの最後の`/`より後にある名前を選びます。
+
+ここで使うマネージドIDは、**復元先VMではなく、バックアップを保存しているRSV自身のID**です。RSVが復元先へリソースを作成するための権限は、Bicepで設定済みです。詳細な操作は[講師デモ手順書の復元操作](../01-Azure-Backupによる別VMへの復元.md#52-変更前の復旧ポイントから別vmを作成する)を参照してください。
 
 復元後は用意済みの公開IP（`rehearsalPublicIpId`／`livePublicIpId`）を復元VMのNICへ関連付けます。Bastion接続用のパスワード再設定などは、講師デモ手順書に従ってください。
 
